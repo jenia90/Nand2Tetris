@@ -1,4 +1,7 @@
 import sys
+import Parser
+import Code
+import SymbolTable as ST
 
 def main():
     inp = sys.argv[0]
