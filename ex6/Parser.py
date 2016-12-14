@@ -1,6 +1,8 @@
 class Parser:
     def __init__(self, file):
-        self.fileLines = [l for l in file.readLines() if not l.startsWith('//')]
+        self.fileLines = [l.strip() for l in file.readlines()
+                          if not l.strip().startswith('//')
+                          and len(l.strip()) > 0]
         self.cmdTypeList = ['A_COMMAND', 'C_COMMAND', 'L_COMMAND']
 
     def hasMoreCommand(self):

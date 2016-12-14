@@ -8,7 +8,7 @@ class SymbolTable:
         dict[symbol] = address
 
     def contains(self, symbol):
-        return not self.symbols.get(symbol)
+        return self.symbols.get(symbol) is not None
 
     def GetAddress(self, symbol):
         return self.symbols.get(symbol)
