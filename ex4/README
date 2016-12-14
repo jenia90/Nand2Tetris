@@ -1,0 +1,21 @@
+jenia90, sharon1832
+===============================================================================
+Yevgeni Dysin, ID 320884216, yevgeni.dysin@mail.huji.ac.il
+Liad Elidan, ID 203380050, liad.elidan@mail.huji.ac.il
+===============================================================================
+
+                           Project 4 - Machine Language
+                           ----------------------------
+  
+Submitted Files
+---------------
+
+README - this file.
+Mult.asm - assembler multiplication routine
+Sort.asm - assembler sort array routine
+Fill.asm - assembler fill screen with image routine
+Divide.asm - assembler divide routine
+
+Remarks
+-------
+* for sort i used bubble sort algorithm.

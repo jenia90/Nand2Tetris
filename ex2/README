@@ -1,0 +1,24 @@
+jenia90, sharon1832
+===============================================================================
+Yevgeni Dysin, ID 320884216, yevgeni.dysin@mail.huji.ac.il
+Liad Elidan, ID 203380050, liad.elidan@mail.huji.ac.il
+===============================================================================
+
+                           Project 2 - Boolean Arithmetic
+                           -------------------------
+  
+Submitted Files
+---------------
+README - This file.
+HalfAdder.hdl - HalfAdder chip
+FullAdder.hdl - FullAdder chip
+Add16.hdl - Add 16 bit chip
+Inc16.hdl - Increment 16 bit chip
+ALU.hdl - Arithmetic Logic Unit chip
+Mul.hdl - Multiplication chip
+ShiftLeft.hdl - Shift left chip
+ShiftRight.hdl - Shift right chip
+
+Remarks
+-------
+* All the chips were implemented using the chips we learned about in project 1

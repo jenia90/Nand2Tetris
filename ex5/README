@@ -1,0 +1,21 @@
+jenia90, sharon1832
+===============================================================================
+Yevgeni Dysin, ID 320884216, yevgeni.dysin@mail.huji.ac.il
+Liad Elidan, ID 203380050, liad.elidan@mail.huji.ac.il
+===============================================================================
+
+                           Project 5 - Computer Architecture
+                           ---------------------------------
+  
+Submitted Files
+---------------
+README - This file.
+Memory.hdl - Computer memory implementation
+ExtendedAlu.hdl - Extention of the ALU with multipliaction and shift operations
+CPU.hdl - hack computer CPU implementation
+CpuMul.hdl - cpu implementation which supports shift and multiplication
+Computer.hdl - hack computer implementation.
+
+Remarks
+-------
+* All the chips were implemented using the various chips from previous chapters

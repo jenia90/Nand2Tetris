@@ -1,0 +1,24 @@
+jenia90, sharon1832
+===============================================================================
+Yevgeni Dysin, ID 320884216, yevgeni.dysin@mail.huji.ac.il
+Liad Elidan, ID 203380050, liad.elidan@mail.huji.ac.il
+===============================================================================
+
+                           Project 3 - Sequential Chips
+                           ----------------------------
+  
+Submitted Files
+---------------
+README - This file.
+Bit.hdl - memory bit chip
+Register.hdl - 1-bit register chip
+RAM8.hdl - 8-bit register chip
+RAM64.hdl - 64-bit register chip
+RAM512.hdl - 512-bit register chip
+RAM4K.hdl - 4K-bit register chip
+RAM16K.hdl - 16K-bit register chip
+PC.hdl - Program Counter chip
+
+Remarks
+-------
+* All the chips were implemented using the DFF chip and other chips from previous weeks

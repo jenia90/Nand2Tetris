@@ -1,7 +1,10 @@
 import sys
-from Parser import *
-from Code import *
-from SymbolTable import *
+
+from ex6.Code import *
+from ex6.SymbolTable import *
+
+from ex6.Parser import *
+
 
 def main():
     inp = sys.argv[1]
