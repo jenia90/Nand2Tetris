@@ -5,12 +5,12 @@ class SymbolTable:
                         'LCL': 1, 'ARG': 2, 'THIS': 3, 'THAT': 4}
         self.currentAddress = 16
 
-    def addEntry(self, symbol, address):
-        self.symbols[symbol] = address
+    def addEntry(self, symbol):
+        self.symbols[symbol] = self.currentAddress
         self.currentAddress += 1
 
     def contains(self, symbol):
-        return self.symbols.get(symbol) is not None
+        return self.symbols[symbol] is not None
 
     def GetAddress(self, symbol):
-        return self.symbols.get(symbol)
+        return self.symbols[symbol]
