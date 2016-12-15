@@ -5,8 +5,8 @@ class SymbolTable:
                         'LCL': 1, 'ARG': 2, 'THIS': 3, 'THAT': 4}
         self.currentAddress = 16
 
-    def addEntry(self, symbol):
-        self.symbols[symbol] = self.currentAddress
+    def addEntry(self, symbol, address):
+        self.symbols[symbol] = address
         self.currentAddress += 1
 
     def contains(self, symbol):
@@ -14,3 +14,6 @@ class SymbolTable:
 
     def GetAddress(self, symbol):
         return self.symbols[symbol]
+
+    def GetCurrentAddress(self):
+        return self.currentAddress
