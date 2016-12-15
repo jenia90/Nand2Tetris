@@ -21,6 +21,7 @@ RESET_INDEX = 0
 
 class Parser:
     def __init__(self, file):
+        self.commandList = []
         self.fileLines = [l.strip() for l in file.readlines()
                           if not l.strip().startswith(COMMENT)
                           and len(l.strip()) > EMPTY_STRING]
