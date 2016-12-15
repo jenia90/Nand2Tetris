@@ -25,10 +25,10 @@ class Code:
                           'JLT': '100', 'JNE': '101', 'JLE': '110', 'JMP': '111'}
 
     def dest(self, mnemonic):
-        return self.destCodes[mnemonic]
+        return self.destCodes[mnemonic] if mnemonic else self.destCodes['null']
 
     def comp(self, mnemonic):
         return self.compCodes[mnemonic]
 
     def jump(self, mnemonic):
-        return self.jumpCodes[mnemonic]
+        return self.jumpCodes[mnemonic] if mnemonic else self.jumpCodes['null']

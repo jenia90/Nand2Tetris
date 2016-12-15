@@ -8,9 +8,10 @@ class SymbolTable:
     def addEntry(self, symbol, address):
         self.symbols[symbol] = address
         self.currentAddress += 1
+        return self.currentAddress - 1
 
     def contains(self, symbol):
-        return self.symbols[symbol] is not None
+        return symbol in self.symbols
 
     def GetAddress(self, symbol):
         return self.symbols[symbol]
