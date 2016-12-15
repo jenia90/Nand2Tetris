@@ -17,13 +17,14 @@ DEST = 0
 COMP = 0
 SPLITTING = 1
 JUMP = 1
+RESET_INDEX = 0
 
 class Parser:
     def __init__(self, file):
         self.fileLines = [l.strip() for l in file.readlines()
                           if not l.strip().startswith(COMMENT)
                           and len(l.strip()) > EMPTY_STRING]
-        self.currentIndex = 0
+        self.currentIndex = RESET_INDEX
 
     def hasMoreCommands(self):
         return self.currentIndex < len(self.fileLines)
