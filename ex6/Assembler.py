@@ -1,9 +1,9 @@
 import sys
 
-from ex6.Code import *
-from ex6.SymbolTable import *
+from Code import *
+from SymbolTable import *
 
-from ex6.Parser import *
+from Parser import *
 
 
 def main():
