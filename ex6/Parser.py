@@ -20,7 +20,7 @@ RESET_INDEX = 0
 
 class Parser:
     def __init__(self, file):
-        self.fileLines = [l.split('//')[0].strip() for l in file.readlines()
+        self.fileLines = [l.split(COMMENT)[0].strip() for l in file.readlines()
                           if not l.strip().startswith(COMMENT)
                           and len(l.strip()) > EMPTY_STRING]
         self.currentIndex = 0
@@ -35,11 +35,12 @@ class Parser:
 
     def resetCount(self):
         self.currentIndex = 0
+        self.currentCommand = self.fileLines[self.currentIndex]
 
     def commandType(self):
         if self.currentCommand.startswith(AT) and len(self.currentCommand) > CORRECT_SYNTAX:
             return A_COMMAND
-        elif self.currentCommand.startswith(LBRKT) and self.currentCommand.endswith(RBRKT):
+        elif self.currentCommand.startswith(LBRKT):
             return L_COMMAND
         elif EQU in self.currentCommand or SEMIC in self.currentCommand:
             return C_COMMAND

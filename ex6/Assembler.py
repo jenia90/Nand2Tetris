@@ -21,7 +21,6 @@ def parseAddressCommand(symbol):
                     else sTable.addEntry(symbol, sTable.GetCurrentAddress())
     else:
         address = symbol
-
     return dec2bin(address)
 
 
