@@ -62,6 +62,7 @@ def assembling(parser, outfile, code, sym_table):
     :param sym_table: symbol table object
     """
     while parser.hasMoreCommands():
+        output = ''
         if parser.getCurrentType() is L_COMMAND:
             parser.advance()
             continue
