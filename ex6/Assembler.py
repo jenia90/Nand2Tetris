@@ -1,4 +1,5 @@
 import sys
+import os
 
 from Code import *
 from SymbolTable import *
@@ -15,7 +16,7 @@ def dec2bin(address):
     return DEF_ADDRESS[:-len(binNum)] + binNum
 
 
-def parseAddressCommand(symbol):
+def processAddressCommand(symbol):
     if symbol[0].isalpha():
         address = sTable.GetAddress(symbol) if sTable.contains(symbol) \
                     else sTable.addEntry(symbol, sTable.GetCurrentAddress())
@@ -24,7 +25,7 @@ def parseAddressCommand(symbol):
     return dec2bin(address)
 
 
-def parseLabels(parser):
+def firstPassProcessing(parser):
     index = 0
     while parser.hasMoreCommands():
         if parser.commandType() is L_COMMAND:
@@ -38,7 +39,7 @@ def parseLabels(parser):
     parser.resetCount()
 
 
-def parseToFile(parser, outFile):
+def secondPassProcessing(parser, outFile):
     while parser.hasMoreCommands():
         output = ''
 
@@ -46,7 +47,7 @@ def parseToFile(parser, outFile):
             parser.advance()
             continue
         elif parser.commandType() is A_COMMAND:
-            output = parseAddressCommand(parser.symbol())
+            output = processAddressCommand(parser.symbol())
 
         elif parser.commandType() is C_COMMAND:
             output = '1'
@@ -58,16 +59,26 @@ def parseToFile(parser, outFile):
         outFile.write(output + '\n')
 
 
-def main(args):
-    inFile = open(args, 'r')
+def processFile(file):
+    inFile = open(file, 'r')
     outFile = open(inFile.name.split('.')[0] + '.hack', 'w')
     parser = Parser(inFile)
 
-    parseLabels(parser)
-    parseToFile(parser, outFile)
+    firstPassProcessing(parser)
+    secondPassProcessing(parser, outFile)
 
     inFile.close()
     outFile.close()
+
+
+def main(args):
+    if os.path.isdir(args):
+        for f in os.listdir(args):
+            if f.endswith('.asm'):
+                processFile(args + f)
+
+    else:
+        processFile(args)
 
 
 if __name__ == '__main__':

@@ -47,21 +47,21 @@ class Parser:
 
     def symbol(self):
         if self.commandType() is A_COMMAND:
-            return self.currentCommand[COMMAND_START:]
+            return self.currentCommand[COMMAND_START:].strip()
         elif self.commandType() is L_COMMAND:
-            return self.currentCommand[COMMAND_START:COMMAND_ENDS]
+            return self.currentCommand[COMMAND_START:COMMAND_ENDS].strip()
 
     def dest(self):
         if EQU in self.currentCommand:
-            return self.currentCommand.split(EQU)[DEST]
+            return self.currentCommand.split(EQU)[DEST].strip()
 
     def comp(self):
         if self.commandType() is C_COMMAND:
             if EQU in self.currentCommand:
-                return self.currentCommand.split(EQU)[COMP_JUMP].split(SEMIC)[COMP]
+                return self.currentCommand.split(EQU)[COMP_JUMP].split(SEMIC)[COMP].strip()
             else:
-                return self.currentCommand.split(SEMIC)[0]
+                return self.currentCommand.split(SEMIC)[0].strip()
 
     def jump(self):
         if self.commandType() is C_COMMAND and SEMIC in self.currentCommand:
-            return self.currentCommand.split(SEMIC)[JUMP]
+            return self.currentCommand.split(SEMIC)[JUMP].strip()
