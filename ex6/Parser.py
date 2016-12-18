@@ -1,4 +1,3 @@
-
 AT = '@'
 EQU = '='
 SEMIC = ';'
@@ -25,30 +24,44 @@ class Parser:
                           and len(l.strip()) > EMPTY_STRING]
         self.currentIndex = 0
         self.currentCommand = ''
+        self.currCommType = ''
+        self.updateCurrentCommand()
 
     def hasMoreCommands(self):
         return self.currentIndex < len(self.fileLines)
 
     def advance(self):
         self.currentIndex += 1
-        self.currentCommand = self.fileLines[self.currentIndex % len(self.fileLines)]
+        self.updateCurrentCommand()
+
+
+    def updateCurrentCommand(self):
+        self.currentCommand = \
+            self.fileLines[self.currentIndex % len(self.fileLines)]
+        self.currCommType = self.commandType()
+
+    def getCurrentType(self):
+        return self.currCommType
 
     def resetCount(self):
         self.currentIndex = 0
         self.currentCommand = self.fileLines[self.currentIndex]
 
     def commandType(self):
-        if self.currentCommand.startswith(AT) and len(self.currentCommand) > CORRECT_SYNTAX:
+        if self.currentCommand.startswith(AT) and len(self.currentCommand) > 1:
             return A_COMMAND
+
         elif self.currentCommand.startswith(LBRKT):
             return L_COMMAND
+
         elif EQU in self.currentCommand or SEMIC in self.currentCommand:
             return C_COMMAND
 
     def symbol(self):
-        if self.commandType() is A_COMMAND:
+        if self.currCommType is A_COMMAND:
             return self.currentCommand[COMMAND_START:].strip()
-        elif self.commandType() is L_COMMAND:
+
+        elif self.currCommType is L_COMMAND:
             return self.currentCommand[COMMAND_START:COMMAND_ENDS].strip()
 
     def dest(self):
@@ -56,9 +69,12 @@ class Parser:
             return self.currentCommand.split(EQU)[DEST].strip()
 
     def comp(self):
-        if self.commandType() is C_COMMAND:
+        if self.currCommType is C_COMMAND:
             if EQU in self.currentCommand:
-                return self.currentCommand.split(EQU)[COMP_JUMP].split(SEMIC)[COMP].strip()
+                return self.currentCommand.\
+                    split(EQU)[COMP_JUMP].\
+                    split(SEMIC)[COMP].strip()
+
             else:
                 return self.currentCommand.split(SEMIC)[0].strip()
 

@@ -1,3 +1,5 @@
+DEF_ADDRESS = '0000000000000000'
+
 class Code:
     def __init__(self):
         self.destCodes = {'null': '000', 'M': '001', 'D': '010', 'MD': '011',
@@ -23,6 +25,15 @@ class Code:
 
         self.jumpCodes = {'null': '000', 'JGT': '001', 'JEQ': '010', 'JGE': '011',
                           'JLT': '100', 'JNE': '101', 'JLE': '110', 'JMP': '111'}
+
+    def dec2bin(self, address):
+        """
+        Converts given address string to binary 16-bit representation
+        :param address: Address string to convert
+        :return: 16-bit representation of the address
+        """
+        binNum = bin(int(address))[2:]
+        return DEF_ADDRESS[:-len(binNum)] + binNum
 
     def dest(self, mnemonic):
         return self.destCodes[mnemonic] if mnemonic else self.destCodes['null']

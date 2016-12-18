@@ -7,8 +7,9 @@ class SymbolTable:
 
     def addEntry(self, symbol, address):
         self.symbols[symbol] = address
+        address = self.currentAddress
         self.currentAddress += 1
-        return self.currentAddress - 1
+        return address
 
     def contains(self, symbol):
         return symbol in self.symbols
