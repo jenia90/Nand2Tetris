@@ -10,7 +10,11 @@ Liad Elidan, ID 203380050, liad.elidan@mail.huji.ac.il
 Submitted Files
 ---------------
 README - This file.
+Assembler - shell script for running the assembler.
+Makefile - makefile
+Code.py - binary codes table helper class
+SymbolTable.py - in memory symbol table helper class
+Parser.py - ASM file parser
+Assembler.py - main file which processes the input and converts it into hack 
+			   file.
 
-Remarks
--------
-* All the chips were implemented using the various chips from previous chapters

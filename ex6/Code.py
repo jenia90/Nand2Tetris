@@ -1,6 +1,8 @@
-DEF_ADDRESS = '0000000000000000'
-
 class Code:
+    """
+    Represent and conversion table from command mnemonics to their binary
+     representation.
+    """
     def __init__(self):
         self.destCodes = {'null': '000', 'M': '001', 'D': '010', 'MD': '011',
                           'A': '100', 'AM': '101', 'AD': '110', 'AMD': '111'}
@@ -23,23 +25,30 @@ class Code:
                           'A<<': '010100000', 'A>>': '010000000',
                           'M<<': '011100000', 'M>>': '011000000'}
 
-        self.jumpCodes = {'null': '000', 'JGT': '001', 'JEQ': '010', 'JGE': '011',
-                          'JLT': '100', 'JNE': '101', 'JLE': '110', 'JMP': '111'}
-
-    def dec2bin(self, address):
-        """
-        Converts given address string to binary 16-bit representation
-        :param address: Address string to convert
-        :return: 16-bit representation of the address
-        """
-        binNum = bin(int(address))[2:]
-        return DEF_ADDRESS[:-len(binNum)] + binNum
+        self.jumpCodes = {'null': '000', 'JGT': '001', 'JEQ': '010',
+                           'JGE': '011', 'JLT': '100', 'JNE': '101',
+                           'JLE': '110', 'JMP': '111'}
 
     def dest(self, mnemonic):
+        """
+        Returns the dest binary value
+        :param mnemonic: the mnemonic we want to convert
+        :return: a string with the binary value
+        """
         return self.destCodes[mnemonic] if mnemonic else self.destCodes['null']
 
     def comp(self, mnemonic):
+        """
+        Returns the comp binary value
+        :param mnemonic: the mnemonic we want to convert
+        :return: a string with the binary value
+        """
         return self.compCodes[mnemonic]
 
     def jump(self, mnemonic):
+        """
+        Returns the jump binary value
+        :param mnemonic: the mnemonic we want to convert
+        :return: a string with the binary value
+        """
         return self.jumpCodes[mnemonic] if mnemonic else self.jumpCodes['null']
