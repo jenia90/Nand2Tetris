@@ -62,7 +62,6 @@ def assembling(parser, outfile, code, sym_table):
     :param sym_table: symbol table object
     """
     while parser.hasMoreCommands():
-        output = ''
         if parser.getCurrentType() is L_COMMAND:
             parser.advance()
             continue
@@ -70,7 +69,7 @@ def assembling(parser, outfile, code, sym_table):
             output = processAddressCommand(parser.symbol(), sym_table)
 
         elif parser.getCurrentType() is C_COMMAND:
-            output += C_COMMAND_PREFIX + code.comp(parser.comp()) + \
+            output = C_COMMAND_PREFIX + code.comp(parser.comp()) + \
                       code.dest(parser.dest()) + \
                       code.jump(parser.jump())
 
