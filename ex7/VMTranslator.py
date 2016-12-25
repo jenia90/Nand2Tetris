@@ -18,27 +18,30 @@ def processFile(file, cw):
     while parser.hasMoreCommands():
         commandType = parser.commandType()
         if commandType is ARITHMETIC_COMM:
-            cw.writeArithmetic(parser.)
+            cw.writeArithmetic(parser.getCommandString())
+        elif commandType is POP_COMM or commandType is PUSH_COMM:
+            cw.writePushPop(commandType, parser.arg1(),
+                            parser.arg2())
 
         parser.advance()
-
-    return
 
 
 def main(args):
     if os.path.isdir(args):  # process directories
-        cw = CodeWriter(os.path.dirname(args).split(os.sep)[-1])
+        cw = CodeWriter(os.path.dirname(args))
         if not args.endswith(os.sep):
             args += os.sep
         for f in os.listdir(args):
             if f.endswith(SOURCE_EXT):
                 cw.setFileName(f)
                 processFile(args + f, cw)
+                cw.close()
 
     # process single file
     elif os.path.isfile(args) and args.endswith(SOURCE_EXT):
         cw = CodeWriter(os.path.dirname(args).split(os.sep)[-1])
         processFile(args, cw)
+        cw.close()
 
     else:
         Exception(WRONG_USAGE_ERROR)

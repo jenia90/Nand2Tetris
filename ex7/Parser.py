@@ -10,6 +10,16 @@ FUNCTION_COMM = 'C_FUNCTION'
 RETURN_COMM = 'C_RETURN'
 CALL_COMM = 'C_CALL'
 
+NOT_COMM = 'not'
+OR_COMM = 'or'
+AND_COMM = 'and'
+LT_COMM = 'lt'
+GT_COMM = 'gt'
+EQ_COMM = 'eq'
+NEG_COMM = 'neg'
+SUB_COMM = 'sub'
+ADD_COMM = 'add'
+
 
 class Parser:
     """
@@ -20,6 +30,8 @@ class Parser:
         self.fileLines = [l.split(COMMENT)[0].strip() for l in file.readlines()
                        if not l.strip().startswith(COMMENT)
                        and len(l.strip()) > 0]
+        self.cArithmeticCommands = [ADD_COMM, SUB_COMM, NEG_COMM, EQ_COMM,
+                                GT_COMM, LT_COMM, AND_COMM, OR_COMM, NOT_COMM]
         self._currCommandArray = []
         self._currentIndex = 0
         self._currentLine = ''
@@ -31,13 +43,13 @@ class Parser:
         Checks if there are more commands to process.
         :return: true if there are more commands; false otherwise.
         """
-        return self.currentIndex < len(self.fileLines)
+        return self._currentIndex < len(self.fileLines)
 
     def advance(self):
         """
         Advances the current command pointer to the next command
         """
-        self.currentIndex += 1
+        self._currentIndex += 1
         self._updateCurrentCommand()
 
     def _updateCurrentCommand(self):
@@ -47,21 +59,21 @@ class Parser:
         """
         if not self.hasMoreCommands():
             return
-        self._currentLine = self.fileLines[self.currentIndex % len(self.fileLines)]
+        self._currentLine = self.fileLines[self._currentIndex % len(self.fileLines)]
         self._currCommandArray = self._currentLine.split()
-        self.currCommType = self.commandType()
+        self._currCommType = self.commandType()
 
     def getCurrentType(self):
         """
         Returns current command type.
         """
-        return self.currCommType
+        return self._currCommType
 
     def resetCount(self):
         """
         Resets the current command pointer
         """
-        self.currentIndex = 0
+        self._currentIndex = 0
         self._updateCurrentCommand()
 
     def commandType(self):
@@ -69,8 +81,7 @@ class Parser:
         Gets the type of the current command
         :return: Command type string
         """
-        cArithmeticCommands = {'add','sub','neg','eq','gt','lt','and','or','not'}
-        if self._currCommandArray[0] in cArithmeticCommands:
+        if self._currCommandArray[0] in self.cArithmeticCommands:
             return ARITHMETIC_COMM
         elif self._currCommandArray[0] == 'pop':
             return POP_COMM
@@ -89,18 +100,21 @@ class Parser:
         elif self._currCommandArray[0] == 'return':
             return FUNCTION_COMM
 
+    def getCommandString(self):
+        return self._currCommandArray[0].strip()
+
     def arg1(self):
         """
         First command argument
         :return: first command argument string
         """
-        if len(self._currCommandArray)>1:
-            return self._currCommandArray[1]
+        if len(self._currCommandArray) > 1:
+            return self._currCommandArray[1].strip()
 
     def arg2(self):
         """
         Second command argument
         :return: second command argument string
         """
-        if len(self._currCommandArray)>2:
-            return self._currCommandArray[2]
+        if len(self._currCommandArray) > 2:
+            return self._currCommandArray[2].strip()
