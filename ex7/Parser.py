@@ -39,6 +39,10 @@ class Parser:
     """
 
     def __init__(self, file):
+        """
+        Initialize the parser.
+        :param file: A file.
+        """
         self.fileLines = [l.split(COMMENT)[CMD_IDX].strip().split() for l in
                           file.readlines()
                           if not l.strip().startswith(COMMENT)
@@ -112,6 +116,10 @@ class Parser:
             return FUNCTION_COMM
 
     def getCommandString(self):
+        """
+        Stripping the command.
+        :return: The command stripped.
+        """
         return self._currCommandArray[CMD_IDX].strip()
 
     def arg1(self):
