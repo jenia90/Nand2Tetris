@@ -1,4 +1,7 @@
 COMMENT = '//'
+CMD_IDX = 0
+ARG2_IDX = 2
+ARG1_IDX = 1
 
 ARITHMETIC_COMM = 'C_ARITHMETIC'
 PUSH_COMM = 'C_PUSH'
@@ -36,7 +39,7 @@ class Parser:
     """
 
     def __init__(self, file):
-        self.fileLines = [l.split(COMMENT)[0].strip().split() for l in
+        self.fileLines = [l.split(COMMENT)[CMD_IDX].strip().split() for l in
                           file.readlines()
                           if not l.strip().startswith(COMMENT)
                           and len(l.strip()) > 0]
@@ -89,27 +92,27 @@ class Parser:
         Gets the type of the current command
         :return: Command type string
         """
-        if self._currCommandArray[0] in self.cArithmeticCommands:
+        if self._currCommandArray[CMD_IDX] in self.cArithmeticCommands:
             return ARITHMETIC_COMM
-        elif self._currCommandArray[0] == POP_KWD:
+        elif self._currCommandArray[CMD_IDX] == POP_KWD:
             return POP_COMM
-        elif self._currCommandArray[0] == PUSH_KWD:
+        elif self._currCommandArray[CMD_IDX] == PUSH_KWD:
             return PUSH_COMM
-        elif self._currCommandArray[0] == LABEL_KWD:
+        elif self._currCommandArray[CMD_IDX] == LABEL_KWD:
             return LABEL_COMM
-        elif self._currCommandArray[0] == GOTO_KWD:
+        elif self._currCommandArray[CMD_IDX] == GOTO_KWD:
             return GOTO_COMM
-        elif self._currCommandArray[0] == iF_GOTO_KWD:
+        elif self._currCommandArray[CMD_IDX] == iF_GOTO_KWD:
             return IF_COMM
-        elif self._currCommandArray[0] == FUNCTION_KWD:
+        elif self._currCommandArray[CMD_IDX] == FUNCTION_KWD:
             return FUNCTION_COMM
-        elif self._currCommandArray[0] == CALL_KWD:
+        elif self._currCommandArray[CMD_IDX] == CALL_KWD:
             return FUNCTION_COMM
-        elif self._currCommandArray[0] == RET_KWD:
+        elif self._currCommandArray[CMD_IDX] == RET_KWD:
             return FUNCTION_COMM
 
     def getCommandString(self):
-        return self._currCommandArray[0].strip()
+        return self._currCommandArray[CMD_IDX].strip()
 
     def arg1(self):
         """
@@ -117,7 +120,7 @@ class Parser:
         :return: first command argument string
         """
         if len(self._currCommandArray) > 1:
-            return self._currCommandArray[1].strip()
+            return self._currCommandArray[ARG1_IDX].strip()
 
     def arg2(self):
         """
@@ -125,4 +128,4 @@ class Parser:
         :return: second command argument string
         """
         if len(self._currCommandArray) > 2:
-            return self._currCommandArray[2].strip()
+            return self._currCommandArray[ARG2_IDX].strip()
