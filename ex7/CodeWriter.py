@@ -128,23 +128,23 @@ class CodeWriter:
         :param command:
         :return:
         """
-        c_str = ''
+        cmd_str = ''
         if command == ADD_COMM:
-            c_str = self.binaryOper(ADD_OPER)
+            cmd_str = self.binaryOper(ADD_OPER)
         elif command == SUB_COMM:
-            c_str = self.binaryOper(SUB_OPER)
+            cmd_str = self.binaryOper(SUB_OPER)
         elif command == NEG_COMM:
-            c_str = self.unaryOper(NEG_OPER)
+            cmd_str = self.unaryOper(NEG_OPER)
         elif command == AND_COMM:
-            c_str = self.binaryOper(AND_OPER)
+            cmd_str = self.binaryOper(AND_OPER)
         elif command == OR_COMM:
-            c_str = self.binaryOper(OR_OPER)
+            cmd_str = self.binaryOper(OR_OPER)
         elif command == NOT_COMM:
-            c_str = self.unaryOper(NOT_OPER)
+            cmd_str = self.unaryOper(NOT_OPER)
         elif command in [EQ_COMM, LT_COMM, GT_COMM]:
-            c_str = self.compareOper(command)
+            cmd_str = self.compareOper(command)
 
-        self._outfile.write(c_str)
+        self._outfile.write(cmd_str)
 
     def pushStackOper(self):
         """
@@ -160,14 +160,14 @@ class CodeWriter:
         """
         Pops a value from the stack
         """
-        commandStr = '@' + index + '\n' \
+        cmd_str = '@' + index + '\n' \
                      'D=A\n' \
                      '@' + self._segments[segment] + '\n'
 
         if segment in self._registers:
-            commandStr += 'A=M\n'
+            cmd_str += 'A=M\n'
 
-        commandStr += 'D=A+D\n' \
+        cmd_str += 'D=A+D\n' \
                       '@R13\n' \
                       'M=D\n' \
                       '@SP\n' \
@@ -178,7 +178,7 @@ class CodeWriter:
                       'A=M\n' \
                       'M=D\n'
 
-        return commandStr
+        return cmd_str
 
     def writePushPop(self, command, segment, index):
         """
@@ -189,13 +189,14 @@ class CodeWriter:
         :param segment:
         :param index:
         """
-        indexStr = self._indexes.get(int(index), index)
-        commandStr = ''
-        staticVar = '@' + self._outfile.name.split('.')[-2].split(sep)[-1] + \
-                    '.' + indexStr + '\n'
+        idx_str = self._indexes.get(int(index), index)
+        cmd_str = ''
+        static_var = '@' + self._outfile.name.split(FNAME_SEP)[-2].\
+                                split(sep)[-1] + FNAME_SEP + idx_str + '\n'
+
         if command == PUSH_COMM:
             if segment == 'temp' or segment == 'pointer':
-                commandStr = '@' + indexStr + '\n' + \
+                cmd_str = '@' + idx_str + '\n' + \
                              'D=A\n' + \
                              '@' + self._segments[segment] + '\n' + \
                              'A=A+D\n' + \
@@ -203,30 +204,30 @@ class CodeWriter:
                              self.pushStackOper()
 
             elif segment in self._registers:
-                commandStr = '@' + indexStr + '\n' \
+                cmd_str = '@' + idx_str + '\n' \
                              'D=A\n' \
                              '@' + self._segments[segment] + '\n' \
                              'A=M+D\n' \
                              'D=M\n' + self.pushStackOper()
 
             elif segment == 'constant':
-                commandStr = '@' + indexStr + '\n' \
+                cmd_str = '@' + idx_str + '\n' \
                              'D=A\n' + self.pushStackOper()
 
             elif segment == 'static':
-                commandStr = staticVar + 'D=M\n' + self.pushStackOper()
+                cmd_str = static_var + 'D=M\n' + self.pushStackOper()
 
         elif command == POP_COMM:
             if segment == 'static':
-                commandStr = '@SP\n' \
+                cmd_str = '@SP\n' \
                              'M=M-1\n' \
                              'A=M\n' \
                              'D=M\n' +\
-                             staticVar + 'M=D\n'
+                             static_var + 'M=D\n'
             else:
-                commandStr = self.popFromStack(segment, index)
+                cmd_str = self.popFromStack(segment, index)
 
-        self._outfile.write(commandStr)
+        self._outfile.write(cmd_str)
 
     def close(self):
         """

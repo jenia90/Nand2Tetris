@@ -6,7 +6,7 @@ from CodeWriter import *
 
 
 EXT_SEP = '.'
-WRONG_USAGE_ERROR = 'The input is invalid!\nUsage: VMTranslator <input>'
+WRONG_USAGE_ERROR = 'The input is invalid!\nUsage: VMtranslator <input>'
 SOURCE_EXT = '.vm'
 READ_ACCESS = 'r'
 
@@ -19,6 +19,7 @@ def processFile(file, cw):
         commandType = parser.commandType()
         if commandType is ARITHMETIC_COMM:
             cw.writeArithmetic(parser.getCommandString())
+
         elif commandType is POP_COMM or commandType is PUSH_COMM:
             cw.writePushPop(commandType, parser.arg1(),
                             parser.arg2())
@@ -30,8 +31,8 @@ def main(args):
     if os.path.isdir(args):  # process directories
         if not args.endswith(os.sep):
             args += os.sep
-        cw = CodeWriter(os.path.dirname(args) + os.sep+ os.path.dirname(args).split(os.sep)[
-            -1] + OUTFILE_EXT)
+        cw = CodeWriter(os.path.dirname(args) + os.sep + os.path.dirname(args).
+                        split(os.sep)[-1] + OUTFILE_EXT)
         for f in os.listdir(args):
             if f.endswith(SOURCE_EXT):
                 cw.setFileName(f)
