@@ -60,7 +60,7 @@ class CodeWriter:
                'A=M\n' \
                'M=M' + oper + 'D\n' \
                '@SP\n' \
-               'M=M+1'
+               'M=M+1\n'
 
     def compareOper(self, oper):
         self._count += 1
@@ -81,7 +81,7 @@ class CodeWriter:
                '@yPosXNeg' + varString + '\n' \
                'D;JLT\n' \
                '@R13\n' \
-               'D=D - M\n' \
+               'D=D-M\n' \
                '@CHECK' + varString + '\n' \
                '0;JMP\n' \
                '(yNeg' + varString + ')\n' \
@@ -92,7 +92,7 @@ class CodeWriter:
                '@yNegXPos' + varString + '\n' \
                'D;JGT\n' \
                '@R13\n' \
-               'D=D - M\n' \
+               'D=D-M\n' \
                '@CHECK' + varString + '\n' \
                '0;JMP\n' \
                '(yPosXNeg' + varString + ')\n' \
@@ -127,22 +127,24 @@ class CodeWriter:
         :param command:
         :return:
         """
+        print(command)
         c_str = ''
-        if command is ADD_COMM:
+        if command == ADD_COMM:
             c_str = self.binaryOper(ADD_OPER)
-        elif command is SUB_COMM:
+        elif command == SUB_COMM:
             c_str = self.binaryOper(SUB_OPER)
-        elif command is NEG_COMM:
+        elif command == NEG_COMM:
             c_str = self.unaryOper(NEG_OPER)
-        elif command is AND_COMM:
+        elif command == AND_COMM:
             c_str = self.binaryOper(AND_OPER)
-        elif command is OR_COMM:
+        elif command == OR_COMM:
             c_str = self.binaryOper(OR_OPER)
-        elif command is NOT_COMM:
+        elif command == NOT_COMM:
             c_str = self.unaryOper(NOT_OPER)
-        elif command in [EQ_COMM, LT_COMM, GT_COMM]:
+        elif command == [EQ_COMM, LT_COMM, GT_COMM]:
             c_str = self.compareOper(command)
 
+        print(c_str)
         self._outfile.write(c_str)
 
     def pushStackOper(self):
@@ -153,21 +155,23 @@ class CodeWriter:
                'M=M+1\n'
 
     def popFromStack(self, segment, index):
-        commandStr = '@' + self._indexes.get(index, index) + '\n' + \
-                     'D=A\n' + \
+        commandStr = '@' + index + '\n' \
+                     'D=A\n' \
                      '@' + self._segments[segment] + '\n'
 
         if segment in self._registers:
-            commandStr += 'D=A+D\n' \
-                          '@R13\n' \
-                          'M=D\n' \
-                          '@SP\n' \
-                          'M=M-1\n' \
-                          'A=M\n' \
-                          'D=M\n' \
-                          '@R13\n' \
-                          'A=M\n' \
-                          'M=D\n'
+            commandStr += 'A=M\n'
+
+        commandStr += 'D=A+D\n' \
+                      '@R13\n' \
+                      'M=D\n' \
+                      '@SP\n' \
+                      'M=M-1\n' \
+                      'A=M\n' \
+                      'D=M\n' \
+                      '@R13\n' \
+                      'A=M\n' \
+                      'M=D\n'
 
         return commandStr
 
@@ -180,17 +184,18 @@ class CodeWriter:
         :param segment:
         :param index:
         """
+        print(command + ' ' + segment + ' ' + index)
         indexStr = self._indexes.get(int(index), index)
         commandStr = ''
         staticVar = '@' + self._outfile.name.split('.')[-2].split(sep)[-1] + \
                     '.' + indexStr + '\n'
-        if command is PUSH_COMM:
+        if command == PUSH_COMM:
             if segment == 'temp' or segment == 'pointer':
                 commandStr = '@' + indexStr + '\n' + \
                              'D=A\n' + \
                              '@' + self._segments[segment] + '\n' + \
-                             'A = A + D\n' + \
-                             'D = M\n' + \
+                             'A=A+D\n' + \
+                             'D=M\n' + \
                              self.pushStackOper()
             elif segment in self._registers:
                 commandStr = '@' + indexStr + '\n' \
@@ -205,7 +210,7 @@ class CodeWriter:
             elif segment == 'static':
                 commandStr = staticVar + 'D=M\n' + self.pushStackOper()
 
-        elif command is POP_COMM:
+        elif command == POP_COMM:
             if segment == 'static':
                 commandStr = '@SP\n' \
                              'M=M-1\n' \
@@ -215,6 +220,7 @@ class CodeWriter:
             else:
                 commandStr = self.popFromStack(segment, index)
 
+        print(commandStr)
         self._outfile.write(commandStr)
 
     def close(self):

@@ -91,21 +91,21 @@ class Parser:
         """
         if self._currCommandArray[0] in self.cArithmeticCommands:
             return ARITHMETIC_COMM
-        elif self._currCommandArray[0] is POP_KWD:
+        elif self._currCommandArray[0] == POP_KWD:
             return POP_COMM
-        elif self._currCommandArray[0] is PUSH_KWD:
+        elif self._currCommandArray[0] == PUSH_KWD:
             return PUSH_COMM
-        elif self._currCommandArray[0] is LABEL_KWD:
+        elif self._currCommandArray[0] == LABEL_KWD:
             return LABEL_COMM
-        elif self._currCommandArray[0] is GOTO_KWD:
+        elif self._currCommandArray[0] == GOTO_KWD:
             return GOTO_COMM
-        elif self._currCommandArray[0] is iF_GOTO_KWD:
+        elif self._currCommandArray[0] == iF_GOTO_KWD:
             return IF_COMM
-        elif self._currCommandArray[0] is FUNCTION_KWD:
+        elif self._currCommandArray[0] == FUNCTION_KWD:
             return FUNCTION_COMM
-        elif self._currCommandArray[0] is CALL_KWD:
+        elif self._currCommandArray[0] == CALL_KWD:
             return FUNCTION_COMM
-        elif self._currCommandArray[0] is RET_KWD:
+        elif self._currCommandArray[0] == RET_KWD:
             return FUNCTION_COMM
 
     def getCommandString(self):
