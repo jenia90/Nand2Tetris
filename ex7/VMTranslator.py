@@ -28,7 +28,7 @@ def processFile(file, cw):
 
 def main(args):
     if os.path.isdir(args):  # process directories
-        cw = CodeWriter(os.path.dirname(args))
+        cw = CodeWriter(os.path.abspath(args) + os.sep + os.path.basename(args))
         if not args.endswith(os.sep):
             args += os.sep
         for f in os.listdir(args):

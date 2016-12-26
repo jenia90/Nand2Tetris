@@ -1,3 +1,4 @@
+FNAME_SEP = '.'
 NOT_OPER = '!'
 OR_OPER = '|'
 AND_OPER = '&'
@@ -27,7 +28,12 @@ class CodeWriter:
         self._currFileName = ''
         self._count = 0
         self._segments = {'local': 'LCL', 'argument': 'ARG', 'this': 'THIS',
-                         'that'  : 'THAT', 'pointer': '3', 'temp': '5'}
+                          'that': 'THAT', 'pointer': '3', 'temp': '5'}
+        self._indexes = {24576: 'KBD', 1: 'R1', 2: 'R2', 3: 'R3', 4: 'R4',
+                         5: 'R5', 16384: 'SCREEN', 7: 'R7', 8: 'R8', 9: 'R9',
+                         10: 'R10', 11: 'R11', 12: 'R12', 13: 'R13', 14: 'R14',
+                         15: 'R15', 6: 'R6', 0: 'SP'}
+
         self._registers = ['local', 'argument', 'this', 'that']
 
     def setFileName(self, filename):
@@ -39,80 +45,80 @@ class CodeWriter:
 
     def unaryOper(self, oper):
         return '@SP\n' \
-                'M=M-1\n' \
-                'M=' + oper +'M\n' \
-                '@SP\n' \
-                'M=M+1\n'
+               'M=M-1\n' \
+               'M=' + oper + 'M\n' \
+               '@SP\n' \
+               'M=M+1\n'
 
     def binaryOper(self, oper):
         return '@SP\n' \
-                'M=M-1\n' \
-                'A=M\n' \
-                'D=M\n' \
-                '@SP\n' \
-                'M=M-1\n' \
-                'A=M\n' \
-                'M=M' + oper + 'D\n' \
-                '@SP\n' \
-                'M=M+1'
+               'M=M-1\n' \
+               'A=M\n' \
+               'D=M\n' \
+               '@SP\n' \
+               'M=M-1\n' \
+               'A=M\n' \
+               'M=M' + oper + 'D\n' \
+               '@SP\n' \
+               'M=M+1'
 
     def compareOper(self, oper):
         self._count += 1
-        varString = '.' + self._currFileName + '.' + str(self._count)
+        varString = FNAME_SEP + self._currFileName + FNAME_SEP + str(self._count)
 
         return '@SP\n' \
-                'M=M-1\n' \
-                'A=M\n' \
-                'D=M\n' \
-                '@R13\n' \
-                'M=D\n' \
-                '@yNeg' + varString + '\n' +\
-                'D;JLT\n' \
-                '@SP\n' \
-                'M=M-1\n' \
-                'A=M\n' \
-                'D=M\n' \
-                '@yPosXNeg' + varString + '\n' \
-                'D;JLT\n' \
-                '@R13\n' \
-                'D=D - M\n' \
-                '@CHECK' + varString + '\n' \
-                '0;JMP\n' \
-                '(yNeg' + varString + ')\n' \
-                '@SP\n' \
-                'M=M-1\n' \
-                'A=M\n' \
-                'D=M\n' \
-                '@yNegXPos'+ varString + '\n' \
-                'D;JGT\n' \
-                '@R13\n' \
-                'D=D - M\n' \
-                '@CHECK' + varString + '\n' \
-                '0;JMP\n' \
-                '(yPosXNeg' + varString + ')\n' \
-                'D=-1\n' \
-                '@CHECK' + varString + '\n' \
-                '0;JMP\n' \
-                '(yNegXPos' + varString + ')\n' \
-                'D=1\n' \
-                '@CHECK' + varString + '\n' \
-                '0;JMP\n' \
-                '(CHECK' + varString + ')\n' \
-                '@ISTRUE' + varString + '\n' \
-                'D;J' + oper.upper() + '\n' \
-                'D=0\n' \
-                '@AFTER' + varString + '\n' \
-                '0;JMP\n' \
-                '(ISTRUE' + varString + ')\n' \
-                'D=-1\n' \
-                '@AFTER' + varString + '\n' \
-                '0;JMP\n' \
-                '(AFTER' + varString + ')\n' \
-                '@SP\n' \
-                'A=M\n' \
-                'M=D\n' \
-                '@SP\n' \
-                'M=M+1\n'
+               'M=M-1\n' \
+               'A=M\n' \
+               'D=M\n' \
+               '@R13\n' \
+               'M=D\n' \
+               '@yNeg' + varString + '\n' +\
+               'D;JLT\n' \
+               '@SP\n' \
+               'M=M-1\n' \
+               'A=M\n' \
+               'D=M\n' \
+               '@yPosXNeg' + varString + '\n' \
+               'D;JLT\n' \
+               '@R13\n' \
+               'D=D - M\n' \
+               '@CHECK' + varString + '\n' \
+               '0;JMP\n' \
+               '(yNeg' + varString + ')\n' \
+               '@SP\n' \
+               'M=M-1\n' \
+               'A=M\n' \
+               'D=M\n' \
+               '@yNegXPos' + varString + '\n' \
+               'D;JGT\n' \
+               '@R13\n' \
+               'D=D - M\n' \
+               '@CHECK' + varString + '\n' \
+               '0;JMP\n' \
+               '(yPosXNeg' + varString + ')\n' \
+               'D=-1\n' \
+               '@CHECK' + varString + '\n' \
+               '0;JMP\n' \
+               '(yNegXPos' + varString + ')\n' \
+               'D=1\n' \
+               '@CHECK' + varString + '\n' \
+               '0;JMP\n' \
+               '(CHECK' + varString + ')\n' \
+               '@ISTRUE' + varString + '\n' \
+               'D;J' + oper.upper() + '\n' \
+               'D=0\n' \
+               '@AFTER' + varString + '\n' \
+               '0;JMP\n' \
+               '(ISTRUE' + varString + ')\n' \
+               'D=-1\n' \
+               '@AFTER' + varString + '\n' \
+               '0;JMP\n' \
+               '(AFTER' + varString + ')\n' \
+               '@SP\n' \
+               'A=M\n' \
+               'M=D\n' \
+               '@SP\n' \
+               'M=M+1\n'
 
     def writeArithmetic(self, command):
         """
@@ -141,27 +147,27 @@ class CodeWriter:
 
     def pushStackOper(self):
         return '@SP\n' \
-                'A=M\n' \
-                'M=D\n' \
-                '@SP\n' \
-                'M=M+1\n'
+               'A=M\n' \
+               'M=D\n' \
+               '@SP\n' \
+               'M=M+1\n'
 
     def popFromStack(self, segment, index):
-        commandStr = '@' + index + '\n' + \
+        commandStr = '@' + self._indexes.get(index, index) + '\n' + \
                      'D=A\n' + \
                      '@' + self._segments[segment] + '\n'
 
         if segment in self._registers:
             commandStr += 'D=A+D\n' \
-                            '@R13\n' \
-                            'M=D\n' \
-                            '@SP\n' \
-                            'M=M-1\n' \
-                            'A=M\n' \
-                            'D=M\n' \
-                            '@R13\n' \
-                            'A=M\n' \
-                            'M=D\n'
+                          '@R13\n' \
+                          'M=D\n' \
+                          '@SP\n' \
+                          'M=M-1\n' \
+                          'A=M\n' \
+                          'D=M\n' \
+                          '@R13\n' \
+                          'A=M\n' \
+                          'M=D\n'
 
         return commandStr
 
@@ -174,26 +180,27 @@ class CodeWriter:
         :param segment:
         :param index:
         """
+        indexStr = self._indexes.get(int(index), index)
         commandStr = ''
-        staticVar = '@' + self._outfile.name.split('.')[0].replace(sep,'.') + \
-                    '.' + index + '\n'
+        staticVar = '@' + self._outfile.name.split('.')[-2].split(sep)[-1] + \
+                    '.' + indexStr + '\n'
         if command is PUSH_COMM:
             if segment == 'temp' or segment == 'pointer':
-                commandStr = '@' + index + '\n' + \
+                commandStr = '@' + indexStr + '\n' + \
                              'D=A\n' + \
                              '@' + self._segments[segment] + '\n' + \
                              'A = A + D\n' + \
                              'D = M\n' + \
                              self.pushStackOper()
             elif segment in self._registers:
-                commandStr = '@' + index + '\n' \
+                commandStr = '@' + indexStr + '\n' \
                              'D=A\n' \
                              '@' + self._segments[segment] + '\n' \
                              'A=M+D\n' \
                              'D=M\n' + self.pushStackOper()
             elif segment == 'constant':
-                commandStr = '@' + index + '\n' \
-                            'D=A\n' + self.pushStackOper()
+                commandStr = '@' + indexStr + '\n' \
+                             'D=A\n' + self.pushStackOper()
 
             elif segment == 'static':
                 commandStr = staticVar + 'D=M\n' + self.pushStackOper()
@@ -201,10 +208,10 @@ class CodeWriter:
         elif command is POP_COMM:
             if segment == 'static':
                 commandStr = '@SP\n' \
-                                'M=M-1\n' \
-                                'A=M\n' \
-                                'D=M\n' +\
-                                staticVar + 'M=D\n'
+                             'M=M-1\n' \
+                             'A=M\n' \
+                             'D=M\n' +\
+                             staticVar + 'M=D\n'
             else:
                 commandStr = self.popFromStack(segment, index)
 
