@@ -37,7 +37,6 @@ class Parser:
     """
     Parses a .vm file
     """
-
     def __init__(self, file):
         """
         Initialize the parser.

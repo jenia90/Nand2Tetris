@@ -28,9 +28,10 @@ def processFile(file, cw):
 
 def main(args):
     if os.path.isdir(args):  # process directories
-        cw = CodeWriter(os.path.abspath(args) + os.sep + os.path.basename(args))
         if not args.endswith(os.sep):
             args += os.sep
+        cw = CodeWriter(os.path.dirname(args) + os.sep+ os.path.dirname(args).split(os.sep)[
+            -1] + OUTFILE_EXT)
         for f in os.listdir(args):
             if f.endswith(SOURCE_EXT):
                 cw.setFileName(f)
@@ -39,7 +40,7 @@ def main(args):
 
     # process single file
     elif os.path.isfile(args) and args.endswith(SOURCE_EXT):
-        cw = CodeWriter(os.path.dirname(args).split(os.sep)[-1])
+        cw = CodeWriter(args.split(SOURCE_EXT)[0] + OUTFILE_EXT)
         processFile(args, cw)
         cw.close()
 

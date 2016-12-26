@@ -8,7 +8,7 @@ ADD_OPER = '+'
 WRITE_ACCESS = 'w'
 OUTFILE_EXT = '.asm'
 
-from os import sep
+from os import sep, path
 from Parser import POP_COMM, PUSH_COMM
 from Parser import ADD_COMM, SUB_COMM, NEG_COMM, EQ_COMM, GT_COMM, LT_COMM, \
     AND_COMM, OR_COMM, NOT_COMM
@@ -24,7 +24,7 @@ class CodeWriter:
         Opens the output file/stream and gets ready to write into it.
         :param outfile: output file
         '''
-        self._outfile = open(outfile + OUTFILE_EXT, WRITE_ACCESS)
+        self._outfile = open(outfile, WRITE_ACCESS)
         self._currFileName = ''
         self._count = 0
         self._segments = {'local': 'LCL', 'argument': 'ARG', 'this': 'THIS',
@@ -46,6 +46,7 @@ class CodeWriter:
     def unaryOper(self, oper):
         return '@SP\n' \
                'M=M-1\n' \
+               'A=M\n' \
                'M=' + oper + 'M\n' \
                '@SP\n' \
                'M=M+1\n'
@@ -127,7 +128,6 @@ class CodeWriter:
         :param command:
         :return:
         """
-        print(command)
         c_str = ''
         if command == ADD_COMM:
             c_str = self.binaryOper(ADD_OPER)
@@ -141,13 +141,15 @@ class CodeWriter:
             c_str = self.binaryOper(OR_OPER)
         elif command == NOT_COMM:
             c_str = self.unaryOper(NOT_OPER)
-        elif command == [EQ_COMM, LT_COMM, GT_COMM]:
+        elif command in [EQ_COMM, LT_COMM, GT_COMM]:
             c_str = self.compareOper(command)
 
-        print(c_str)
         self._outfile.write(c_str)
 
     def pushStackOper(self):
+        """
+        Pushes a values to the stack
+        """
         return '@SP\n' \
                'A=M\n' \
                'M=D\n' \
@@ -155,6 +157,9 @@ class CodeWriter:
                'M=M+1\n'
 
     def popFromStack(self, segment, index):
+        """
+        Pops a value from the stack
+        """
         commandStr = '@' + index + '\n' \
                      'D=A\n' \
                      '@' + self._segments[segment] + '\n'
@@ -184,7 +189,6 @@ class CodeWriter:
         :param segment:
         :param index:
         """
-        print(command + ' ' + segment + ' ' + index)
         indexStr = self._indexes.get(int(index), index)
         commandStr = ''
         staticVar = '@' + self._outfile.name.split('.')[-2].split(sep)[-1] + \
@@ -197,12 +201,14 @@ class CodeWriter:
                              'A=A+D\n' + \
                              'D=M\n' + \
                              self.pushStackOper()
+
             elif segment in self._registers:
                 commandStr = '@' + indexStr + '\n' \
                              'D=A\n' \
                              '@' + self._segments[segment] + '\n' \
                              'A=M+D\n' \
                              'D=M\n' + self.pushStackOper()
+
             elif segment == 'constant':
                 commandStr = '@' + indexStr + '\n' \
                              'D=A\n' + self.pushStackOper()
@@ -220,12 +226,10 @@ class CodeWriter:
             else:
                 commandStr = self.popFromStack(segment, index)
 
-        print(commandStr)
         self._outfile.write(commandStr)
 
     def close(self):
         """
         Closes the output file
-        :return:
         """
         self._outfile.close()
