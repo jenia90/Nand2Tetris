@@ -12,6 +12,8 @@ from os import sep, path
 from Parser import POP_COMM, PUSH_COMM
 from Parser import ADD_COMM, SUB_COMM, NEG_COMM, EQ_COMM, GT_COMM, LT_COMM, \
     AND_COMM, OR_COMM, NOT_COMM
+from Parser import CALL_KWD, FUNCTION_KWD, GOTO_KWD, IF_GOTO_KWD, LABEL_KWD,\
+    POP_KWD, PUSH_KWD, RET_KWD
 
 
 class CodeWriter:
@@ -125,8 +127,7 @@ class CodeWriter:
         """
         Writes the assemble code that is the translation of the given
         arithmetic command.
-        :param command:
-        :return:
+        :param command: Arithmetic command string
         """
         cmd_str = ''
         if command == ADD_COMM:
@@ -143,6 +144,53 @@ class CodeWriter:
             cmd_str = self.unaryOper(NOT_OPER)
         elif command in [EQ_COMM, LT_COMM, GT_COMM]:
             cmd_str = self.compareOper(command)
+
+        self._outfile.write(cmd_str)
+
+    def writeBranching(self, command, label):
+        """
+        Writes a given branching command
+        :param command: command string such as 'label', 'goto', etc.
+        :param label: the label string
+        """
+        cmd_str = ''
+
+        if command == LABEL_KWD:
+            cmd_str = '(' + label + ')\n'
+
+        elif command == GOTO_KWD:
+            cmd_str = '@' + label + '\n' \
+                        'M;JMP\n'
+
+        elif command == IF_GOTO_KWD:
+            cmd_str = '@SP\n' \
+                        'M=M-1\n' \
+                        'D=M\n' \
+                        '@SP\n' \
+                        'M=M+1\n' \
+                        '@' + label + '\n'\
+                        'D;JEQ\n'
+
+        self._outfile.write(cmd_str)
+
+    def writeFuncCommand(self, command, arg1, arg2):
+        """
+        Writes a function related command.
+        :param command: Command string such as 'call', etc.
+        :param arg1: function label
+        :param arg2: number of arguments
+        """
+        cmd_str = ''
+
+        if command == FUNCTION_KWD:
+            # TODO: add implementation here
+            return
+        elif command == RET_KWD:
+            # TODO: add implementation here
+            return
+        elif command == CALL_KWD:
+            # TODO: add implementation here
+            return
 
         self._outfile.write(cmd_str)
 
