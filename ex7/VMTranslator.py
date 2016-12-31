@@ -24,7 +24,7 @@ def processFile(file, cw):
             cw.writePushPop(commandType, parser.arg1(),
                             parser.arg2())
 
-        elif commandType is LABEL_COMM:
+        elif commandType in [LABEL_COMM, GOTO_COMM, IF_COMM]:
             cw.writeBranching(commandType, parser.arg1())
 
         elif commandType in [FUNCTION_COMM, RETURN_COMM, CALL_COMM]:

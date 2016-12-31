@@ -12,8 +12,8 @@ from os import sep, path
 from Parser import POP_COMM, PUSH_COMM
 from Parser import ADD_COMM, SUB_COMM, NEG_COMM, EQ_COMM, GT_COMM, LT_COMM, \
     AND_COMM, OR_COMM, NOT_COMM
-from Parser import CALL_KWD, FUNCTION_KWD, GOTO_KWD, IF_GOTO_KWD, LABEL_KWD,\
-    POP_KWD, PUSH_KWD, RET_KWD
+from Parser import CALL_COMM, FUNCTION_COMM, RETURN_COMM, LABEL_COMM, \
+    GOTO_COMM, IF_COMM
 
 
 class CodeWriter:
@@ -31,12 +31,25 @@ class CodeWriter:
         self._count = 0
         self._segments = {'local': 'LCL', 'argument': 'ARG', 'this': 'THIS',
                           'that': 'THAT', 'pointer': '3', 'temp': '5'}
+
         self._indexes = {24576: 'KBD', 1: 'R1', 2: 'R2', 3: 'R3', 4: 'R4',
                          5: 'R5', 16384: 'SCREEN', 7: 'R7', 8: 'R8', 9: 'R9',
                          10: 'R10', 11: 'R11', 12: 'R12', 13: 'R13', 14: 'R14',
                          15: 'R15', 6: 'R6', 0: 'SP'}
 
         self._registers = ['local', 'argument', 'this', 'that']
+        self.writeInit()
+
+    def writeInit(self):
+        """
+        Writes the bootstrap code to the asm file
+        :return:
+        """
+        self._outfile.write('@256\n'
+                            'D=A\n'
+                            '@SP\n'
+                            'M=D\n')
+        self.writeCall('Sys.init', 0)
 
     def setFileName(self, filename):
         """
@@ -147,6 +160,21 @@ class CodeWriter:
 
         self._outfile.write(cmd_str)
 
+    def writeLabel(self, label):
+        return '(' + label + ')\n'
+
+    def writeGoto(self, label):
+        return '@' + label + '\n' \
+               '0;JMP\n'
+
+    def writeIf(self, label):
+        return '@SP\n' \
+               'M=M-1\n' \
+               'A=M\n'\
+               'D=M\n' \
+               '@' + label + '\n' \
+               'D;JNE\n'
+
     def writeBranching(self, command, label):
         """
         Writes a given branching command
@@ -155,23 +183,31 @@ class CodeWriter:
         """
         cmd_str = ''
 
-        if command == LABEL_KWD:
-            cmd_str = '(' + label + ')\n'
+        if command == LABEL_COMM:
+            cmd_str = self.writeLabel(label)
 
-        elif command == GOTO_KWD:
-            cmd_str = '@' + label + '\n' \
-                        'M;JMP\n'
+        elif command == GOTO_COMM:
+            cmd_str = self.writeGoto(label)
 
-        elif command == IF_GOTO_KWD:
-            cmd_str = '@SP\n' \
-                        'M=M-1\n' \
-                        'D=M\n' \
-                        '@SP\n' \
-                        'M=M+1\n' \
-                        '@' + label + '\n'\
-                        'D;JEQ\n'
+        elif command == IF_COMM:
+            cmd_str = self.writeIf(label)
 
         self._outfile.write(cmd_str)
+
+    def writeFunction(self, name, nArgs):
+        cmd_str = ''
+
+        return cmd_str
+
+    def writeCall(self, name, nArgs):
+        cmd_str = ''
+
+        return cmd_str
+
+    def writeReturn(self):
+        cmd_str = ''
+
+        return cmd_str
 
     def writeFuncCommand(self, command, arg1, arg2):
         """
@@ -182,15 +218,12 @@ class CodeWriter:
         """
         cmd_str = ''
 
-        if command == FUNCTION_KWD:
-            # TODO: add implementation here
-            return
-        elif command == RET_KWD:
-            # TODO: add implementation here
-            return
-        elif command == CALL_KWD:
-            # TODO: add implementation here
-            return
+        if command == FUNCTION_COMM:
+            cmd_str = self.writeFunction(arg1, arg2)
+        elif command == RETURN_COMM:
+            cmd_str = self.writeReturn()
+        elif command == CALL_COMM:
+            cmd_str = self.writeFunction(arg1, arg2)
 
         self._outfile.write(cmd_str)
 

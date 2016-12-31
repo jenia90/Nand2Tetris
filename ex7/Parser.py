@@ -110,9 +110,9 @@ class Parser:
         elif self._currCommandArray[CMD_IDX] == FUNCTION_KWD:
             return FUNCTION_COMM
         elif self._currCommandArray[CMD_IDX] == CALL_KWD:
-            return FUNCTION_COMM
+            return CALL_COMM
         elif self._currCommandArray[CMD_IDX] == RET_KWD:
-            return FUNCTION_COMM
+            return RETURN_COMM
 
     def getCommandString(self):
         """
