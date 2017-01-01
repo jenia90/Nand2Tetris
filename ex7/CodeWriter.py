@@ -163,10 +163,10 @@ class CodeWriter:
         self._outfile.write(cmd_str)
 
     def writeLabel(self, label):
-        return '(' + label + ')\n'
+        return '(' + str(label) + ')\n'
 
     def writeGoto(self, label):
-        return '@' + label + '\n' \
+        return '@' + str(label) + '\n' \
                '0;JMP\n'
 
     def writeIf(self, label):
@@ -174,7 +174,7 @@ class CodeWriter:
                'M=M-1\n' \
                'A=M\n'\
                'D=M\n' \
-               '@' + label + '\n' \
+               '@' + str(label) + '\n' \
                'D;JNE\n'
 
     def writeBranching(self, command, label):
@@ -206,7 +206,7 @@ class CodeWriter:
                'A=M\n' \
                'D=M\n' \
                '@' + pointer + '\n'\
-               'M=D'
+               'M=D\n'
 
     def writeFunction(self, name, nArgs):
         cmd_str = self.writeLabel(name)
@@ -216,13 +216,13 @@ class CodeWriter:
         return cmd_str
 
     def writeCall(self, name, nArgs):
-        if name in self._funcCallCounts:
+        if name not in self._funcCallCounts:
             self._funcCallCounts[name] = 0
 
         self._funcCallCounts[name] += 1
         count = self._funcCallCounts[name]
 
-        ret_name = name + '$ret.' + count
+        ret_name = name + '$ret.' + str(count)
         cmd_str = '@' + ret_name + '\n'
         cmd_str += 'D=A\n'
         for p in ['LCL', 'ARG', 'THIS', 'THAT']:
@@ -265,7 +265,7 @@ class CodeWriter:
 
         cmd_str += '@retAddr\n' \
                    'A=M\n' \
-                   '0;JMP'
+                   '0;JMP\n'
 
         return cmd_str
 
@@ -279,12 +279,13 @@ class CodeWriter:
         cmd_str = ''
 
         if command == FUNCTION_COMM:
-            cmd_str = self.writeFunction(arg1, arg2)
+            cmd_str = self.writeFunction(arg1, int(arg2))
         elif command == RETURN_COMM:
             cmd_str = self.writeReturn()
         elif command == CALL_COMM:
-            cmd_str = self.writeFunction(arg1, arg2)
+            cmd_str = self.writeFunction(arg1, int(arg2))
 
+        print(cmd_str)
         self._outfile.write(cmd_str)
 
     def pushStackOper(self, arg):
@@ -301,7 +302,7 @@ class CodeWriter:
         """
         Pops a value from the stack
         """
-        cmd_str = '@' + index + '\n' \
+        cmd_str = '@' + str(index) + '\n' \
                   'D=A\n' \
                   '@' + self._segments[segment] + '\n'
 

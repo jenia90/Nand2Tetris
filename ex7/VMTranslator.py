@@ -29,9 +29,11 @@ def processFile(file, cw):
             cw.writeBranching(commandType, parser.arg1())
 
         elif commandType in [FUNCTION_COMM, RETURN_COMM, CALL_COMM]:
-            cw.writeFuncCommand(commandType, parser.arg1, parser.arg2())
+            cw.writeFuncCommand(commandType, parser.arg1(), parser.arg2())
 
         parser.advance()
+
+    f.close()
 
 
 def main(args):
@@ -44,7 +46,8 @@ def main(args):
             if f.endswith(SOURCE_EXT):
                 cw.setFileName(f)
                 processFile(args + f, cw)
-                cw.close()
+
+        cw.close()
 
     # process single file
     elif os.path.isfile(args) and args.endswith(SOURCE_EXT):
