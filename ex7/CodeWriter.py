@@ -37,6 +37,8 @@ class CodeWriter:
                          10: 'R10', 11: 'R11', 12: 'R12', 13: 'R13', 14: 'R14',
                          15: 'R15', 6: 'R6', 0: 'SP'}
 
+        self._funcCallCounts = {}
+
         self._registers = ['local', 'argument', 'this', 'that']
         self.writeInit()
 
@@ -194,13 +196,46 @@ class CodeWriter:
 
         self._outfile.write(cmd_str)
 
+    def backupPointer(self, pointer):
+        return '@' + pointer + '\n' \
+               'D=M\n' + self.pushStackOper('D')
+
+
     def writeFunction(self, name, nArgs):
-        cmd_str = ''
+        cmd_str = self.writeLabel(name)
+        for i in range(nArgs):
+            self.pushStackOper('0')
 
         return cmd_str
 
     def writeCall(self, name, nArgs):
-        cmd_str = ''
+        if name in self._funcCallCounts:
+            self._funcCallCounts[name] = 0
+
+        self._funcCallCounts[name] += 1
+        count = self._funcCallCounts[name]
+
+        ret_name = name + '$ret.' + count
+        cmd_str = '@' + ret_name + '\n'
+        cmd_str += 'D=A\n'
+        for p in ['LCL', 'ARG', 'THIS', 'THAT']:
+            cmd_str += self.backupPointer(p)
+
+        cmd_str += '@SP\n' \
+                   'D=M\n' \
+                   '@' + str(nArgs + 5) + '\n' \
+                   'D=D-A\n' \
+                   '@ARG\n' \
+                   'M=D\n' \
+                   '@SP\n' \
+                   'D=M\n' \
+                   '@LCL\n' \
+                   'M=D\n'
+
+        self._outfile.write(cmd_str)
+        self.writeGoto(name)
+        self.writeLabel(ret_name)
+
 
         return cmd_str
 
@@ -227,13 +262,13 @@ class CodeWriter:
 
         self._outfile.write(cmd_str)
 
-    def pushStackOper(self):
+    def pushStackOper(self, arg):
         """
         Pushes a values to the stack
         """
         return '@SP\n' \
                'A=M\n' \
-               'M=D\n' \
+               'M=' + arg + '\n' \
                '@SP\n' \
                'M=M+1\n'
 
@@ -242,8 +277,8 @@ class CodeWriter:
         Pops a value from the stack
         """
         cmd_str = '@' + index + '\n' \
-                     'D=A\n' \
-                     '@' + self._segments[segment] + '\n'
+                  'D=A\n' \
+                  '@' + self._segments[segment] + '\n'
 
         if segment in self._registers:
             cmd_str += 'A=M\n'
@@ -282,21 +317,21 @@ class CodeWriter:
                              '@' + self._segments[segment] + '\n' + \
                              'A=A+D\n' + \
                              'D=M\n' + \
-                             self.pushStackOper()
+                             self.pushStackOper('D')
 
             elif segment in self._registers:
                 cmd_str = '@' + idx_str + '\n' \
                              'D=A\n' \
                              '@' + self._segments[segment] + '\n' \
                              'A=M+D\n' \
-                             'D=M\n' + self.pushStackOper()
+                             'D=M\n' + self.pushStackOper('D')
 
             elif segment == 'constant':
                 cmd_str = '@' + idx_str + '\n' \
-                          'D=A\n' + self.pushStackOper()
+                          'D=A\n' + self.pushStackOper('D')
 
             elif segment == 'static':
-                cmd_str = static_var + 'D=M\n' + self.pushStackOper()
+                cmd_str = static_var + 'D=M\n' + self.pushStackOper('D')
 
         elif command == POP_COMM:
             if segment == 'static':
