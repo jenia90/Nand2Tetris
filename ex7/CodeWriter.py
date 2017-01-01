@@ -200,6 +200,13 @@ class CodeWriter:
         return '@' + pointer + '\n' \
                'D=M\n' + self.pushStackOper('D')
 
+    def restorePointer(self, pointer):
+        return '@endFrame\n' \
+               'M=M-1\n' \
+               'A=M\n' \
+               'D=M\n' \
+               '@' + pointer + '\n'\
+               'M=D'
 
     def writeFunction(self, name, nArgs):
         cmd_str = self.writeLabel(name)
@@ -231,16 +238,34 @@ class CodeWriter:
                    'D=M\n' \
                    '@LCL\n' \
                    'M=D\n'
-
-        self._outfile.write(cmd_str)
-        self.writeGoto(name)
-        self.writeLabel(ret_name)
-
+        cmd_str += self.writeGoto(name)
+        cmd_str += self.writeLabel(ret_name)
 
         return cmd_str
 
     def writeReturn(self):
-        cmd_str = ''
+        cmd_str = '@LCL\n' \
+                  'D=M\n' \
+                  '@endFrame\n' \
+                  'M=D\n' \
+                  'D=A\n' \
+                  '@5\n' \
+                  'D=D-A\n' \
+                  '@retAddr\n' \
+                  'M=D\n' +\
+                  self.popFromStack('argument', 0) +\
+                  'D=M\n' \
+                  '@ARG\n' \
+                  'A=D\n' \
+                  'D=M\n' \
+                  '@SP\n' \
+                  'M=D+1\n'
+        for p in ['THAT', 'THIS', 'ARG', 'LCL']:
+            cmd_str += self.restorePointer(p)
+
+        cmd_str += '@retAddr\n' \
+                   'A=M\n' \
+                   '0;JMP'
 
         return cmd_str
 
