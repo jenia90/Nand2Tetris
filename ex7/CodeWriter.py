@@ -20,12 +20,11 @@ class CodeWriter:
     """
     Writes a piece of code as a hack machine language
     """
-
     def __init__(self, outfile):
-        '''
+        """
         Opens the output file/stream and gets ready to write into it.
         :param outfile: output file
-        '''
+        """
         self._outfile = open(outfile, WRITE_ACCESS)
         self._currFileName = ''
         self._count = 0
@@ -37,21 +36,21 @@ class CodeWriter:
                          10: 'R10', 11: 'R11', 12: 'R12', 13: 'R13', 14: 'R14',
                          15: 'R15', 6: 'R6', 0: 'SP'}
 
+        self._registers = ['local', 'argument', 'this', 'that']
+
         self._funcCallCounts = {}
 
-        self._registers = ['local', 'argument', 'this', 'that']
         self.writeInit()
 
     def writeInit(self):
         """
         Writes the bootstrap code to the asm file
-        :return:
         """
         self._outfile.write('@256\n'
                             'D=A\n'
                             '@SP\n'
-                            'M=D\n')
-        self.writeCall('Sys.init', 0)
+                            'M=D\n' + self.writeCall('Sys.init', 0))
+
 
     def setFileName(self, filename):
         """
@@ -84,59 +83,29 @@ class CodeWriter:
         self._count += 1
         varString = FNAME_SEP + self._currFileName + FNAME_SEP + str(self._count)
 
-        return '@SP\n' \
-               'M=M-1\n' \
-               'A=M\n' \
-               'D=M\n' \
-               '@R13\n' \
-               'M=D\n' \
-               '@yNeg' + varString + '\n' +\
-               'D;JLT\n' \
-               '@SP\n' \
-               'M=M-1\n' \
-               'A=M\n' \
-               'D=M\n' \
-               '@yPosXNeg' + varString + '\n' \
-               'D;JLT\n' \
-               '@R13\n' \
-               'D=D-M\n' \
-               '@CHECK' + varString + '\n' \
-               '0;JMP\n' \
-               '(yNeg' + varString + ')\n' \
-               '@SP\n' \
-               'M=M-1\n' \
-               'A=M\n' \
-               'D=M\n' \
-               '@yNegXPos' + varString + '\n' \
-               'D;JGT\n' \
-               '@R13\n' \
-               'D=D-M\n' \
-               '@CHECK' + varString + '\n' \
-               '0;JMP\n' \
-               '(yPosXNeg' + varString + ')\n' \
-               'D=-1\n' \
-               '@CHECK' + varString + '\n' \
-               '0;JMP\n' \
-               '(yNegXPos' + varString + ')\n' \
-               'D=1\n' \
-               '@CHECK' + varString + '\n' \
-               '0;JMP\n' \
-               '(CHECK' + varString + ')\n' \
-               '@ISTRUE' + varString + '\n' \
-               'D;J' + oper.upper() + '\n' \
-               'D=0\n' \
-               '@AFTER' + varString + '\n' \
-               '0;JMP\n' \
-               '(ISTRUE' + varString + ')\n' \
-               'D=-1\n' \
-               '@AFTER' + varString + '\n' \
-               '0;JMP\n' \
-               '(AFTER' + varString + ')\n' \
-               '@SP\n' \
-               'A=M\n' \
-               'M=D\n' \
-               '@SP\n' \
-               'M=M+1\n'
+        return "@SP\n" + \
+                     "M=M-1\n" \
+                     "A=M\n" + \
+                     "D=M\n" + \
+                     "@SP\n" + \
+                     "M=M-1\n" \
+                     "A=M\n" + \
+                     "D=M-D\n" + \
+                     "@correct" + varString + "\n" + \
+                     "D;J"+ oper.upper() + "\n" + \
+                     "D=0\n" + \
+                     "@after" + varString + "\n" + \
+                     "0;JMP\n" + \
+                     "(correct" + varString + ")\n" + \
+                     "D=-1\n" + \
+                     "@after" + varString + "\n" + \
+                     "0;JMP\n" + \
+                     "(after" + varString + ")\n" + \
+                     "@SP\n" + \
+                     "A=M\n" + \
+                     "M=D\n" + \
+                     "@SP\n" + \
+                     "M=M+1\n"
 
     def writeArithmetic(self, command):
         """
@@ -166,7 +135,7 @@ class CodeWriter:
         return '(' + str(label) + ')\n'
 
     def writeGoto(self, label):
-        return '@' + str(label) + '\n' \
+        return '@' + label + '\n' \
                '0;JMP\n'
 
     def writeIf(self, label):
@@ -174,7 +143,7 @@ class CodeWriter:
                'M=M-1\n' \
                'A=M\n'\
                'D=M\n' \
-               '@' + str(label) + '\n' \
+               '@' + label + '\n' \
                'D;JNE\n'
 
     def writeBranching(self, command, label):
@@ -198,10 +167,11 @@ class CodeWriter:
 
     def backupPointer(self, pointer):
         return '@' + pointer + '\n' \
-               'D=M\n' + self.pushStackOper('D')
+               'D=M\n' + \
+               self.pushStackOper('D')
 
     def restorePointer(self, pointer):
-        return '@endFrame\n' \
+        return '@R14\n' \
                'M=M-1\n' \
                'A=M\n' \
                'D=M\n' \
@@ -211,7 +181,7 @@ class CodeWriter:
     def writeFunction(self, name, nArgs):
         cmd_str = self.writeLabel(name)
         for i in range(nArgs):
-            self.pushStackOper('0')
+            cmd_str += self.pushStackOper('0')
 
         return cmd_str
 
@@ -225,6 +195,7 @@ class CodeWriter:
         ret_name = name + '$ret.' + str(count)
         cmd_str = '@' + ret_name + '\n'
         cmd_str += 'D=A\n'
+        cmd_str += self.pushStackOper('D')
         for p in ['LCL', 'ARG', 'THIS', 'THAT']:
             cmd_str += self.backupPointer(p)
 
@@ -246,24 +217,25 @@ class CodeWriter:
     def writeReturn(self):
         cmd_str = '@LCL\n' \
                   'D=M\n' \
-                  '@endFrame\n' \
+                  '@R14\n' \
                   'M=D\n' \
-                  'D=A\n' \
                   '@5\n' \
-                  'D=D-A\n' \
-                  '@retAddr\n' \
-                  'M=D\n' +\
-                  self.popFromStack('argument', 0) +\
-                  'D=M\n' \
-                  '@ARG\n' \
+                  'D=A\n' \
+                  '@R14\n' \
+                  'D=M-D\n' \
                   'A=D\n' \
+                  'D=M\n' \
+                  '@R15\n' \
+                  'M=D\n' +\
+                  self.popFromStack('argument', '0') +\
+                  '@ARG\n' \
                   'D=M\n' \
                   '@SP\n' \
                   'M=D+1\n'
         for p in ['THAT', 'THIS', 'ARG', 'LCL']:
             cmd_str += self.restorePointer(p)
 
-        cmd_str += '@retAddr\n' \
+        cmd_str += '@R15\n' \
                    'A=M\n' \
                    '0;JMP\n'
 
@@ -283,9 +255,8 @@ class CodeWriter:
         elif command == RETURN_COMM:
             cmd_str = self.writeReturn()
         elif command == CALL_COMM:
-            cmd_str = self.writeFunction(arg1, int(arg2))
+            cmd_str = self.writeCall(arg1, int(arg2))
 
-        print(cmd_str)
         self._outfile.write(cmd_str)
 
     def pushStackOper(self, arg):
@@ -302,7 +273,7 @@ class CodeWriter:
         """
         Pops a value from the stack
         """
-        cmd_str = '@' + str(index) + '\n' \
+        cmd_str = '@' + index + '\n' \
                   'D=A\n' \
                   '@' + self._segments[segment] + '\n'
 
@@ -333,7 +304,7 @@ class CodeWriter:
         """
         idx_str = self._indexes.get(int(index), index)
         cmd_str = ''
-        static_var = '@' + self._outfile.name.split(FNAME_SEP)[-2].\
+        static_var = self._currFileName.split(FNAME_SEP)[-2].\
                                 split(sep)[-1] + FNAME_SEP + idx_str + '\n'
 
         if command == PUSH_COMM:
@@ -350,22 +321,28 @@ class CodeWriter:
                              'D=A\n' \
                              '@' + self._segments[segment] + '\n' \
                              'A=M+D\n' \
-                             'D=M\n' + self.pushStackOper('D')
+                             'D=M\n' + \
+                             self.pushStackOper('D')
 
             elif segment == 'constant':
                 cmd_str = '@' + idx_str + '\n' \
-                          'D=A\n' + self.pushStackOper('D')
+                          'D=A\n' + \
+                          self.pushStackOper('D')
 
             elif segment == 'static':
-                cmd_str = static_var + 'D=M\n' + self.pushStackOper('D')
+                cmd_str = '@' + static_var + \
+                          'D=M\n' + \
+                          self.pushStackOper('D')
 
         elif command == POP_COMM:
             if segment == 'static':
                 cmd_str = '@SP\n' \
-                          'M=M-1\n' \
-                          'A=M\n' \
-                          'D=M\n' +\
-                          static_var + 'M=D\n'
+                          'A=M-1\n' \
+                          'D=M\n' \
+                          '@' + static_var +\
+                          'M=D\n' \
+                          '@SP\n' \
+                          'M=M-1\n'
             else:
                 cmd_str = self.popFromStack(segment, index)
 
