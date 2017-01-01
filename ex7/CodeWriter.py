@@ -293,7 +293,7 @@ class CodeWriter:
 
             elif segment == 'constant':
                 cmd_str = '@' + idx_str + '\n' \
-                             'D=A\n' + self.pushStackOper()
+                          'D=A\n' + self.pushStackOper()
 
             elif segment == 'static':
                 cmd_str = static_var + 'D=M\n' + self.pushStackOper()
@@ -301,10 +301,10 @@ class CodeWriter:
         elif command == POP_COMM:
             if segment == 'static':
                 cmd_str = '@SP\n' \
-                             'M=M-1\n' \
-                             'A=M\n' \
-                             'D=M\n' +\
-                             static_var + 'M=D\n'
+                          'M=M-1\n' \
+                          'A=M\n' \
+                          'D=M\n' +\
+                          static_var + 'M=D\n'
             else:
                 cmd_str = self.popFromStack(segment, index)
 
