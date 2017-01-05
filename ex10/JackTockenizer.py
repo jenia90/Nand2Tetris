@@ -1,5 +1,7 @@
 import re
 
+COMMENT = '//'
+
 GRP_TYPE_IDX = 1
 
 IF_EXPR_IDX = 2
@@ -27,23 +29,31 @@ KWD_LIST = ['class', 'constructor', 'function', 'method', 'field', 'static',
 SYMBOL_LIST = ['{', '}', '(', ')', '[', ']', '.', ',', ';', '+', '-', '*',
                '/', '&', '|', '<', '>', '=', '~']
 
+
+
 INT_MIN = 0
 INT_MAX = 32767
 
 
 class JackTockenizer:
-    def __init__(self):
+    def __init__(self, file):
+        self.tokens = [l.split(COMMENT).strip().split() for l in
+                       file.readlines()
+                       if not l.strip().startswith(COMMENT)
+                       and len(l.strip()) > 0]
         self.re_cond = re.compile(IF_EXP)
         self.re_let = re.compile(LET_EXP)
         self.re_do = re.compile(DO_EXP)
         self.re_ret = re.compile(RET_EXP)
+
+        self.currentIndex = 0
         return
 
     def hasMoreTokens(self):
-        return
+        return self.currentIndex < len(self.tokens)
 
     def advance(self):
-        return
+        self.currentIndex += 1
 
     def tokenType(self):
         return
