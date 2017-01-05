@@ -1,9 +1,9 @@
 import xml.etree.cElementTree as ET
-import JackTockenizer
+import JackTockenizer as JT
 
 class CompilationEngine:
-    def __init__(self, tokenizer):
-        self._tokenizer = tokenizer
+    def __init__(self, in_file, out_file):
+        self._tokenizer = JT.JackTockenizer(in_file)
         self._root = ET.Element("class")
         self._tree = ET.ElementTree(self._root)
         self._output = ''
@@ -11,16 +11,21 @@ class CompilationEngine:
     def CompileClass(self):
         while self._tokenizer.hasMoreCommands():
             currToken = self._tokenizer.tokenType()
-            if currToken == KEYWORD:
-                ET.SubElement(self._root,KEYWORD).text = self._tokenizer.keyWord()
-            elif currToken == SYMBOL:
-                ET.SubElement(self._root,SYMBOL).text = self._tokenizer.symbol()
-            elif currToken == IDENTIFIER:
-                ET.SubElement(self._root,IDENTIFIER).text = self._tokenizer.identifier()
-            elif currToken == INT_CONST:
-                ET.SubElement(self._root,INT_CONST).text = self._tokenizer.intVal()
-            elif currToken == STRING_CONST:
-                ET.SubElement(self._root,STRING_CONST).text = self._tokenizer.stringVal()
+            if currToken == JT.KEYWORD:
+                ET.SubElement(self._root, JT.KEYWORD).text = \
+                    self._tokenizer.keyWord()
+            elif currToken == JT.SYMBOL:
+                ET.SubElement(self._root, JT.SYMBOL).text = \
+                    self._tokenizer.symbol()
+            elif currToken == JT.IDENTIFIER:
+                ET.SubElement(self._root, JT.IDENTIFIER).text = \
+                    self._tokenizer.identifier()
+            elif currToken == JT.INT_CONST:
+                ET.SubElement(self._root, JT.INT_CONST).text = \
+                    self._tokenizer.intVal()
+            elif currToken == JT.STRING_CONST:
+                ET.SubElement(self._root, JT.STRING_CONST).text = \
+                    self._tokenizer.stringVal()
             else:
                 return "ERROR"
         self._tokenizer.advance()

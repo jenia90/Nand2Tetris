@@ -1,6 +1,11 @@
 import re
 
 COMMENT = '//'
+KEYWORD = 'keyword'
+SYMBOL = 'symbol'
+IDENTIFIER = 'identifier'
+INT_CONST = 'intConstant'
+STRING_CONST = 'stringConstant'
 
 GRP_TYPE_IDX = 1
 
