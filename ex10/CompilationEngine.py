@@ -62,6 +62,7 @@ class CompilationEngine:
             ET.SubElement(classVarDecLeaf, JT.SYMBOL).text = \
                 self._tokenizer.symbol()
 
+
     def CompilesubroutineDec(self):
         return
 
