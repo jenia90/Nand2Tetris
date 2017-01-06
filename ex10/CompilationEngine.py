@@ -6,7 +6,6 @@ class CompilationEngine:
         self._tokenizer = JT.JackTockenizer(in_file)
         self._root = ET.Element("class")
         self._tree = ET.ElementTree(self._root)
-        self._output = ''
 
     def CompileClass(self):
         while self._tokenizer.hasMoreCommands():
@@ -31,7 +30,16 @@ class CompilationEngine:
         self._tokenizer.advance()
 
     def CompileClassVarDec(self):
-        return
+        classVarDecLeaf = ET.SubElement(self._root, JT.KEYWORD)
+        if self._tokenizer.tokenType == JT.KEYWORD:
+            ET.SubElement(classVarDecLeaf, JT.KEYWORD).text = \
+                    self._tokenizer.keyWord()
+        elif self._tokenizer.tokenType == JT.IDENTIFIER:
+            ET.SubElement(classVarDecLeaf, JT.IDENTIFIER).text = \
+                    self._tokenizer.identifier()
+        elif self._tokenizer.tokenType == JT.SYMBOL:
+            ET.SubElement(classVarDecLeaf, JT.SYMBOL).text = \
+            self._tokenizer.symbol()
 
     def CompileSubroutine(self):
         return
