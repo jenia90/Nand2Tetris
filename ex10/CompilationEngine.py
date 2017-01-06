@@ -46,13 +46,13 @@ class CompilationEngine:
         currToken = self._tokenizer.tokenType()
         classVarDecLeaf = ET.SubElement(self._root, "classVarDec")
         while currToken != ';':
-            if self._tokenizer.tokenType == JT.KEYWORD:
+            if currToken == JT.KEYWORD:
                 ET.SubElement(classVarDecLeaf, JT.KEYWORD).text = \
                         self._tokenizer.keyWord()
-            elif self._tokenizer.tokenType == JT.IDENTIFIER:
+            elif currToken == JT.IDENTIFIER:
                 ET.SubElement(classVarDecLeaf, JT.IDENTIFIER).text = \
                         self._tokenizer.identifier()
-            elif self._tokenizer.tokenType == JT.SYMBOL:
+            elif currToken == JT.SYMBOL:
                 ET.SubElement(classVarDecLeaf, JT.SYMBOL).text = \
                 self._tokenizer.symbol()
             else:
@@ -62,7 +62,7 @@ class CompilationEngine:
             ET.SubElement(classVarDecLeaf, JT.SYMBOL).text = \
                 self._tokenizer.symbol()
 
-    def CompileSubroutine(self):
+    def CompilesubroutineDec(self):
         return
 
     def CompileParameterList(self):
