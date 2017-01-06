@@ -8,7 +8,7 @@ class CompilationEngine:
         self._tree = ET.ElementTree(self._root)
 
     def CompileClass(self):
-        while self._tokenizer.hasMoreCommands():
+        while self._tokenizer.tokenType != '{':
             currToken = self._tokenizer.tokenType()
             if currToken == JT.KEYWORD:
                 ET.SubElement(self._root, JT.KEYWORD).text = \
@@ -27,20 +27,40 @@ class CompilationEngine:
                     self._tokenizer.stringVal()
             else:
                 return "ERROR"
+            self._tokenizer.advance()
+        if self._tokenizer.tokenType == '{':
+                ET.SubElement(self._root, JT.SYMBOL).text = \
+                self._tokenizer.symbol()
+
+            #until here its the class
+
         self._tokenizer.advance()
 
-    def CompileClassVarDec(self):
-        classVarDecLeaf = ET.SubElement(self._root, JT.KEYWORD)
-        if self._tokenizer.tokenType == JT.KEYWORD:
-            ET.SubElement(classVarDecLeaf, JT.KEYWORD).text = \
-                    self._tokenizer.keyWord()
-        elif self._tokenizer.tokenType == JT.IDENTIFIER:
-            ET.SubElement(classVarDecLeaf, JT.IDENTIFIER).text = \
-                    self._tokenizer.identifier()
-        elif self._tokenizer.tokenType == JT.SYMBOL:
-            ET.SubElement(classVarDecLeaf, JT.SYMBOL).text = \
-            self._tokenizer.symbol()
+        #from here its compileClassVarDec
 
+        while self._tokenizer != 'constructor':
+            self.CompileClassVarDec()
+            self._tokenizer.advance()
+
+    def CompileClassVarDec(self):
+        currToken = self._tokenizer.tokenType()
+        classVarDecLeaf = ET.SubElement(self._root, "classVarDec")
+        while currToken != ';':
+            if self._tokenizer.tokenType == JT.KEYWORD:
+                ET.SubElement(classVarDecLeaf, JT.KEYWORD).text = \
+                        self._tokenizer.keyWord()
+            elif self._tokenizer.tokenType == JT.IDENTIFIER:
+                ET.SubElement(classVarDecLeaf, JT.IDENTIFIER).text = \
+                        self._tokenizer.identifier()
+            elif self._tokenizer.tokenType == JT.SYMBOL:
+                ET.SubElement(classVarDecLeaf, JT.SYMBOL).text = \
+                self._tokenizer.symbol()
+            else:
+                return "ERROR"
+            self._tokenizer.advance()
+        if currToken == ';':
+            ET.SubElement(classVarDecLeaf, JT.SYMBOL).text = \
+                self._tokenizer.symbol()
 
     def CompileSubroutine(self):
         return
