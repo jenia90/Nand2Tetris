@@ -8,11 +8,15 @@ class CompilationEngine:
         self._tree = ET.ElementTree(self._root)
 
     def CompileClass(self):
-        while self._tokenizer.tokenType != '{':
+        while self._tokenizer.tokenType != '}':
             currToken = self._tokenizer.tokenType()
             if currToken == JT.KEYWORD:
-                ET.SubElement(self._root, JT.KEYWORD).text = \
-                    self._tokenizer.keyWord()
+                if currToken == 'field':
+                    self.CompileClassVarDec()
+                else:
+                    ET.SubElement(self._root, JT.KEYWORD).text = \
+                        self._tokenizer.keyWord()
+
             elif currToken == JT.SYMBOL:
                 ET.SubElement(self._root, JT.SYMBOL).text = \
                     self._tokenizer.symbol()
@@ -29,10 +33,10 @@ class CompilationEngine:
                 return "ERROR"
             self._tokenizer.advance()
         if self._tokenizer.tokenType == '{':
-                ET.SubElement(self._root, JT.SYMBOL).text = \
-                self._tokenizer.symbol()
+            ET.SubElement(self._root, JT.SYMBOL).text = \
+            self._tokenizer.symbol()
 
-            #until here its the class
+        #until here its the class
 
         self._tokenizer.advance()
 
