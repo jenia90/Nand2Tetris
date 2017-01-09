@@ -15,6 +15,9 @@ classVarList = ['static', 'field']
 varTypeList = ['int', 'char', 'boolean']
 subroutineTypeList = ['constructor', 'function', 'method']
 STATEMENTS = ['if', 'else', 'while', 'return', 'do', 'let']
+KEYWORD_CONSTS = ['true', 'false', 'null', 'this']
+OP_LIST = ['+', '-', '*', '/', '&', '|', '<', '>', '=']
+UOP_LIST = ['-', '~']
 
 
 KWD_LIST = ['class', 'constructor', 'function', 'method', 'field', 'static',
@@ -34,8 +37,8 @@ class JackTockenizer:
     def __init__(self, file):
         self._tokens = [l.split(SINGLE_COMMENT)[0].strip() for l in
                         file.readlines()
-                        if not l.startswith(SINGLE_COMMENT)
-                        and len(l) > 0]
+                        if not l.strip().startswith(SINGLE_COMMENT)
+                        and len(l.strip()) > 0]
         self.removeComments()
         self.splitSymbols()
         self.currentIndex = 0
@@ -56,11 +59,15 @@ class JackTockenizer:
 
     def splitSymbols(self):
         newTokens = []
-        for i in self._tokens:
-            for l in i:
-                if l in SYMBOL_LIST:
-                    newTokens.append(l)
-            newTokens.append(i)
+        for token in self._tokens:
+            for t in token.split():
+                for l in token:
+                    if not l.isalpha() and l in SYMBOL_LIST:
+                        newTokens.append(l)
+                        token.remove(l)
+                newTokens.append(t)
+
+        self._tokens = newTokens
 
     def hasMoreTokens(self):
         """
@@ -73,20 +80,21 @@ class JackTockenizer:
         """
         Get the nest token from the input and makes it the current token.
         """
-        while self.hasMoreTokens()
-            if
-        self.currentIndex += 1
-
-    def validate(self, str):
-        if self.re_cond.match(str):
-            return
+        self.currentIndex = (self.currentIndex + 1) % len(self._tokens)
+        self._currentToken = self._tokens[self.currentIndex]
 
     def tokenType(self):
         """
         Returns the type of the current token
         :return: Token type constant.
         """
-        return
+        token = self._currentToken
+        if token in SYMBOL_LIST:
+            return SYMBOL
+        elif token in KWD_LIST:
+            return KEYWORD
+        elif INT_MIN < int(token) < INT_MAX:
+            return INT_CONST
 
     def keyWord(self):
         """
