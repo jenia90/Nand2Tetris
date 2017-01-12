@@ -12,7 +12,7 @@ CLASS = 'class'
 CLASS_VAR_DEC = 'classVarDec'
 SUBROUTINE = 'subRoutine'
 STATEMENT = 'statement'
-VAR_DEC = 'varDec'
+VAR_DEC = 'var'
 
 
 CLASS_VARS = ['static', 'field']
@@ -40,7 +40,7 @@ KEYWORD_REGEX = '(?!\\w)|'.join(KWD_LIST) + '(?!\\w)'
 SYMBOL_REGEX = '[' + re.escape('|'.join(SYMBOL_LIST)) + ']'
 INT_REGEX = '\\d+'
 STR_REGEX = '\"[^\"\\n]*\"'
-ID_REGEX = '[\\w]+'
+ID_REGEX = '\\D[\\w]+'
 
 
 class JackTockenizer:
@@ -52,7 +52,9 @@ class JackTockenizer:
         self._removeComments()
         self._splitter = re.compile(KEYWORD_REGEX + '|' + SYMBOL_REGEX + '|' +
                               INT_REGEX + '|' + STR_REGEX + '|' + ID_REGEX)
-        self._tokens = self._splitter.findall(''.join(self._lines))
+        self._tokens = [token.strip() for token in
+                        self._splitter.findall(''.join(self._lines))]
+        print(self._tokens)
         self._currentIndex = 0
         self._currentToken = ''
         self._updateCurrentToken()
@@ -64,7 +66,7 @@ class JackTockenizer:
                 while not i.endswith('*/'):
                     continue
             else:
-                newTokens.append(i)
+                newTokens.append(i.strip())
 
         self._lines = newTokens
 
@@ -94,18 +96,18 @@ class JackTockenizer:
         """
         token = self._currentToken
         print('current token: ' + token)
-        if re.match(KEYWORD_REGEX, token):
+        if re.match(KEYWORD_REGEX, token) is not None:
             return KEYWORD
-        elif re.match(SYMBOL_REGEX, token):
+        elif re.match(SYMBOL_REGEX, token) is not None:
             return SYMBOL
-        elif re.match(INT_REGEX, token):
+        elif re.match(INT_REGEX, token) is not None:
             token = int(token)
             if token < INT_MIN or token > INT_MAX:
                 return 'ERROR'
             return INT_CONST
-        elif re.match(STR_REGEX, token):
+        elif re.match(STR_REGEX, token) is not None:
             return STRING_CONST
-        elif re.match(ID_REGEX, token):
+        elif re.match(ID_REGEX, token) is not None:
             return IDENTIFIER
         else:
             return 'ERROR'
