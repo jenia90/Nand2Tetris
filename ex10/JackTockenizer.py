@@ -6,6 +6,7 @@ SYMBOL = 'symbol'
 IDENTIFIER = 'identifier'
 INT_CONST = 'intConstant'
 STRING_CONST = 'stringConstant'
+UOP = 'unaryOp'
 
 CLASS = 'class'
 VARDEC = 'varDec'

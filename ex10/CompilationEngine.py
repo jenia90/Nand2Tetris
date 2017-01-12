@@ -268,11 +268,11 @@ class CompilationEngine:
     def CompileTerm(self):
         token = self._tokenizer
         term = ET.Element("term")
-        if token.tokenType == JT.INTEGER_CONSTANT:
+        if token.tokenType == JT.INT_CONST:
             ET.SubElement(term, token.intVal())
-        elif token.tokenType == JT.STRING_CONSTANT:
+        elif token.tokenType == JT.STRING_CONST:
             ET.SubElement(term, token.stringVal())
-        elif token.tokenType in JT.KEYWORD_CONSTANT:
+        elif token.tokenType in JT.KEYWORD_CONSTS:
             ET.SubElement(term, token.keyWord())
         elif token.tokenType == JT.IDENTIFIER:
             ET.SubElement(term, token.identifier())
@@ -305,7 +305,7 @@ class CompilationEngine:
                     ET.SubElement(term, self.CompileExpressionList())
                     token.advance()
                     ET.SubElement(term, token.symbol())
-            elif token.tokenType == JT.UNARYOP:
+            elif token.tokenType == JT.UOP:
                 ET.SubElement(term, token.symbol())
                 token.advance()
                 ET.SubElement(term, self.CompileTerm())
