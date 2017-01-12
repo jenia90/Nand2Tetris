@@ -9,12 +9,15 @@ STRING_CONST = 'stringConstant'
 UOP = 'unaryOp'
 
 CLASS = 'class'
-VARDEC = 'varDec'
+CLASS_VAR_DEC = 'classVarDec'
 SUBROUTINE = 'subRoutine'
+STATEMENT = 'statement'
+VAR_DEC = 'varDec'
 
-classVarList = ['static', 'field']
+
+CLASS_VARS = ['static', 'field']
 varTypeList = ['int', 'char', 'boolean']
-subroutineTypeList = ['constructor', 'function', 'method']
+SUBROUTINE_TYPES = ['constructor', 'function', 'method']
 STATEMENTS = ['if', 'else', 'while', 'return', 'do', 'let']
 KEYWORD_CONSTS = ['true', 'false', 'null', 'this']
 OP_LIST = ['+', '-', '*', '/', '&', '|', '<', '>', '=']
@@ -33,56 +36,56 @@ symbolConvertion = {'<': '&lt;', '>': '&gt;', '"': '&quot;', '&': '&amp;'}
 INT_MIN = 0
 INT_MAX = 32767
 
+KEYWORD_REGEX = '(?!\\w)|'.join(KWD_LIST) + '(?!\\w)'
+SYMBOL_REGEX = '[' + re.escape('|'.join(SYMBOL_LIST)) + ']'
+INT_REGEX = '\\d+'
+STR_REGEX = '\"[^\"\\n]*\"'
+ID_REGEX = '[\\w]+'
+
 
 class JackTockenizer:
     def __init__(self, file):
-        self._tokens = [l.split(SINGLE_COMMENT)[0].strip() for l in
-                        file.readlines()
-                        if not l.strip().startswith(SINGLE_COMMENT)
-                        and len(l.strip()) > 0]
-        self.removeComments()
-        self.splitSymbols()
-        self.currentIndex = 0
-        self._currentToken = self._tokens[0]
+        self._lines = [l.split(SINGLE_COMMENT)[0].strip() for l in
+                       file.readlines()
+                       if not l.strip().startswith(SINGLE_COMMENT)
+                       and len(l.strip()) > 0]
+        self._removeComments()
+        self._splitter = re.compile(KEYWORD_REGEX + '|' + SYMBOL_REGEX + '|' +
+                              INT_REGEX + '|' + STR_REGEX + '|' + ID_REGEX)
+        self._tokens = self._splitter.findall(''.join(self._lines))
+        self._currentIndex = 0
+        self._currentToken = ''
+        self._updateCurrentToken()
 
-    def removeComments(self):
+    def _removeComments(self):
         newTokens = []
-        for i in self._tokens:
+        for i in self._lines:
             if i.startswith('/**'):
                 while not i.endswith('*/'):
                     continue
-            elif i.startswith(SINGLE_COMMENT):
-                continue
             else:
                 newTokens.append(i)
 
-        self._tokens = newTokens
+        self._lines = newTokens
 
-    def splitSymbols(self):
-        newTokens = []
-        for token in self._tokens:
-            for t in token.split():
-                for l in token:
-                    if not l.isalpha() and l in SYMBOL_LIST:
-                        newTokens.append(l)
-                        token.remove(l)
-                newTokens.append(t)
-
-        self._tokens = newTokens
+    def _updateCurrentToken(self):
+        self._currentToken = self._tokens[self._currentIndex]
 
     def hasMoreTokens(self):
         """
         Checks if there are more tokens in the input.
         :return: true if there are more tokens; false otherwise.
         """
-        return self.currentIndex < len(self._tokens)
+        return self._currentIndex < len(self._lines)
+
 
     def advance(self):
         """
         Get the nest token from the input and makes it the current token.
         """
-        self.currentIndex = (self.currentIndex + 1) % len(self._tokens)
-        self._currentToken = self._tokens[self.currentIndex]
+        if self.hasMoreTokens():
+            self._currentIndex += 1
+            self._updateCurrentToken()
 
     def tokenType(self):
         """
@@ -90,40 +93,54 @@ class JackTockenizer:
         :return: Token type constant.
         """
         token = self._currentToken
-        if token in SYMBOL_LIST:
-            return SYMBOL
-        elif token in KWD_LIST:
+        print('current token: ' + token)
+        if re.match(KEYWORD_REGEX, token):
             return KEYWORD
-        elif INT_MIN < int(token) < INT_MAX:
+        elif re.match(SYMBOL_REGEX, token):
+            return SYMBOL
+        elif re.match(INT_REGEX, token):
+            token = int(token)
+            if token < INT_MIN or token > INT_MAX:
+                return 'ERROR'
             return INT_CONST
+        elif re.match(STR_REGEX, token):
+            return STRING_CONST
+        elif re.match(ID_REGEX, token):
+            return IDENTIFIER
+        else:
+            return 'ERROR'
 
     def keyWord(self):
         """
         Returns the keyword which is the current token.
         :return:
         """
-        return
+        return self._currentToken
 
     def symbol(self):
         """
         Returns the character which is the current token.
         :return:
         """
-        return
+        if self._currentToken not in symbolConvertion:
+            return self._currentToken
+
+        return symbolConvertion[self._currentToken]
+
 
     def identifier(self):
         """
         Returns the identifier which is the current token.
         :return:
         """
-        return
+        return self._currentToken
 
     def intVal(self):
         """
         Returns the integer value of the current token
         :return:
         """
-        return
+        return self._currentToken
 
     def stringVal(self):
         """
@@ -131,4 +148,4 @@ class JackTockenizer:
         quotes.
         :return:
         """
-        return
+        return self._currentToken[1:-1]
