@@ -4,7 +4,7 @@ SINGLE_COMMENT = '//'
 KEYWORD = 'keyword'
 SYMBOL = 'symbol'
 IDENTIFIER = 'identifier'
-INT_CONST = 'intConstant'
+INT_CONST = 'integerConstant'
 STRING_CONST = 'stringConstant'
 TERM = 'term'
 OP = 'op'
@@ -42,7 +42,7 @@ KEYWORD_REGEX = '(?!\\w)|'.join(KWD_LIST) + '(?!\\w)'
 SYMBOL_REGEX = '[' + re.escape('|'.join(SYMBOL_LIST)) + ']'
 INT_REGEX = '\\d+'
 STR_REGEX = '\"[^\"\\n]*\"'
-ID_REGEX = '\\D[\\w]+'
+ID_REGEX = '[\\w]+'
 KWD_CONST_REGEX = '(?!\\w)|'.join(KEYWORD_CONSTS) + '(?!\\w)'
 OP_REGEX = '[' + re.escape('|'.join(OP_LIST + UOP_LIST)) + ']'
 UOP_REGEX = '[-|~]'
@@ -123,6 +123,12 @@ class JackTockenizer:
             return UOP
         else:
             return 'ERROR'
+
+    def nextToken(self):
+        if self.hasMoreTokens():
+            return self._tokens[self._currentIndex + 1]
+        else:
+            return None
 
     def keyWord(self):
         """
