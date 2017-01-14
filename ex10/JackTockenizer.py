@@ -6,6 +6,8 @@ SYMBOL = 'symbol'
 IDENTIFIER = 'identifier'
 INT_CONST = 'intConstant'
 STRING_CONST = 'stringConstant'
+TERM = 'term'
+OP = 'op'
 UOP = 'unaryOp'
 
 CLASS = 'class'
@@ -41,6 +43,9 @@ SYMBOL_REGEX = '[' + re.escape('|'.join(SYMBOL_LIST)) + ']'
 INT_REGEX = '\\d+'
 STR_REGEX = '\"[^\"\\n]*\"'
 ID_REGEX = '\\D[\\w]+'
+KWD_CONST_REGEX = '(?!\\w)|'.join(KEYWORD_CONSTS) + '(?!\\w)'
+OP_REGEX = '[' + re.escape('|'.join(OP_LIST + UOP_LIST)) + ']'
+UOP_REGEX = '[-|~]'
 
 
 class JackTockenizer:
@@ -78,7 +83,7 @@ class JackTockenizer:
         Checks if there are more tokens in the input.
         :return: true if there are more tokens; false otherwise.
         """
-        return self._currentIndex < len(self._lines)
+        return self._currentIndex < len(self._tokens)
 
 
     def advance(self):
@@ -109,6 +114,13 @@ class JackTockenizer:
             return STRING_CONST
         elif re.match(ID_REGEX, token) is not None:
             return IDENTIFIER
+        elif re.match(INT_REGEX + '|' + STR_REGEX + '|' + KWD_CONST_REGEX +
+                              '|' + ID_REGEX, token):
+            return TERM
+        elif re.match(OP_REGEX, token):
+            return OP
+        elif re.match(UOP_REGEX, token):
+            return UOP
         else:
             return 'ERROR'
 
@@ -128,7 +140,6 @@ class JackTockenizer:
             return self._currentToken
 
         return symbolConvertion[self._currentToken]
-
 
     def identifier(self):
         """
