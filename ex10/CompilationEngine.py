@@ -29,7 +29,7 @@ class CompilationEngine:
                 ' ' + self._tokenizer.symbol() + ' '
         self._tokenizer.advance()
 
-        while self._tokenizer.hasMoreTokens():
+        while self._tokenizer.symbol() != '}':
             if self._tokenizer.tokenType() == JT.KEYWORD:
                 if self._tokenizer.keyWord() in JT.CLASS_VARS:
                     self._root.append(self.CompileClassVarDec())
@@ -39,13 +39,18 @@ class CompilationEngine:
                     self._tokenizer.symbol() == '}':
                 ET.SubElement(self._root, JT.SYMBOL).text = \
                     ' ' + self._tokenizer.symbol() + ' '
-                break
             self._tokenizer.advance()
 
-        rough = ET.tostring(self._root, short_empty_elements=False)
-        reparsed = minidom.parseString(rough)
+        ET.SubElement(self._root, JT.SYMBOL).text = ' ' + \
+                                                    self._tokenizer.symbol()\
+                                                    + ' '
 
-        self._out_file.write(reparsed.toprettyxml(indent='  '))
+        self._out_file.write(self.prettify(self._root))
+
+    def prettify(self, element):
+        rough = ET.tostring(element, short_empty_elements=False)
+        reparsed = minidom.parseString(rough)
+        return reparsed.toprettyxml(indent='  ')
 
     def CompileClassVarDec(self):
         varDecRoot = ET.Element("classVarDec")
@@ -65,6 +70,7 @@ class CompilationEngine:
         ET.SubElement(varDecRoot, JT.SYMBOL).text = \
             ' ' + self._tokenizer.symbol() + ' '
 
+        print(self.prettify(varDecRoot))
         return varDecRoot
 
     def CompileSubroutineDec(self):
@@ -91,6 +97,7 @@ class CompilationEngine:
         token.advance()
         subroutineDec.append(self.CompileSubRoutineBody())
 
+        print(self.prettify(subroutineDec))
         return subroutineDec
 
     def CompileSubRoutineBody(self):
@@ -103,12 +110,12 @@ class CompilationEngine:
             elif token.tokenType() == JT.KEYWORD and \
                             token.keyWord() in JT.STATEMENTS:
                 subRoutineBody.append(self.CompileStatements())
-                token.advance()
             elif token.tokenType() == JT.SYMBOL:
                 ET.SubElement(subRoutineBody, JT.SYMBOL).text = ' ' + token.symbol() + ' '
                 token.advance()
 
         ET.SubElement(subRoutineBody, JT.SYMBOL).text = ' ' + token.symbol() + ' '
+        print(self.prettify(subRoutineBody))
         return subRoutineBody
 
     def CompileParameterList(self):
@@ -123,6 +130,7 @@ class CompilationEngine:
                 ET.SubElement(parameterList, JT.SYMBOL).text = ' ' + token.symbol() + ' '
             token.advance()
 
+        print(self.prettify(parameterList))
         return parameterList
 
     def CompileVarDec(self):
@@ -137,6 +145,8 @@ class CompilationEngine:
                 ET.SubElement(varDec, JT.SYMBOL).text = ' ' + token.symbol() + ' '
             token.advance()
         ET.SubElement(varDec, JT.SYMBOL).text = ' ' + token.symbol() + ' '
+
+        print(self.prettify(varDec))
         return varDec
 
     def CompileStatements(self):
@@ -154,6 +164,8 @@ class CompilationEngine:
             elif token.keyWord() == 'return':
                 statements.append(self.CompileReturn())
             token.advance()
+
+        print(self.prettify(statements))
         return statements
 
     def CompileDo(self):
@@ -184,6 +196,8 @@ class CompilationEngine:
             token.advance()
 
         ET.SubElement(doStatement, JT.SYMBOL).text = ' ' + token.symbol() + ' '
+
+        print(self.prettify(doStatement))
         return doStatement
 
     def CompileLet(self):
@@ -211,6 +225,8 @@ class CompilationEngine:
             ET.SubElement(letStatement, JT.SYMBOL).text = ' ' + token.symbol() + ' '
             token.advance()
         ET.SubElement(letStatement, JT.SYMBOL).text = ' ' + token.symbol() + ' '
+
+        print(self.prettify(letStatement))
         return letStatement
 
     def CompileWhile(self):
@@ -232,6 +248,8 @@ class CompilationEngine:
         whileStatement.append(self.CompileStatements())
         token.advance()
         ET.SubElement(whileStatement, JT.SYMBOL).text = ' ' + token.symbol() + ' '
+
+        print(self.prettify(whileStatement))
         return whileStatement
 
     def CompileReturn(self):
@@ -243,18 +261,18 @@ class CompilationEngine:
         token.advance()
         if token.tokenType() == JT.SYMBOL and token.symbol() == ';':
             ET.SubElement(returnStatement, JT.SYMBOL).text = ' ' + token.symbol() + ' '
-            token.advance()
             return returnStatement
         returnStatement.append(self.CompileExpression())
         ET.SubElement(returnStatement, JT.SYMBOL).text = ' ' + token.symbol() + ' '
+
+        print(self.prettify(returnStatement))
         return returnStatement
 
     def CompileIf(self):
         token = self._tokenizer
         ifStatement = ET.Element("ifStatement")
-        if token.tokenType() is not JT.KEYWORD:
-            return "Error"
-        ET.SubElement(ifStatement, JT.KEYWORD).text = ' ' + token.keyWord() + ' '
+        ET.SubElement(ifStatement, JT.KEYWORD).text = ' ' + token.keyWord() \
+                                                      + ' '
         token.advance()
         ET.SubElement(ifStatement, JT.SYMBOL).text = ' ' + token.symbol() + ' '
         token.advance()
@@ -265,14 +283,17 @@ class CompilationEngine:
         token.advance()
         ifStatement.append(self.CompileStatements())
         ET.SubElement(ifStatement, JT.SYMBOL).text = ' ' + token.symbol() + ' '
-        if token.tokenType() is JT.KEYWORD and token.keyWord() == 'else':
-            ET.SubElement(ifStatement, token.keyWord())
+        token.advance()
+        if token.keyWord() == 'else':
+            ET.SubElement(ifStatement, JT.KEYWORD).text = ' ' + token.keyWord() \
+                                                          + ' '
             token.advance()
             ET.SubElement(ifStatement, JT.SYMBOL).text = ' ' + token.symbol() + ' '
             token.advance()
             ifStatement.append(self.CompileStatements())
-            token.advance()
             ET.SubElement(ifStatement, JT.SYMBOL).text = ' ' + token.symbol() + ' '
+
+        print(self.prettify(ifStatement))
         return ifStatement
 
     def CompileExpression(self):
@@ -283,6 +304,8 @@ class CompilationEngine:
             ET.SubElement(expression, JT.SYMBOL).text = ' ' + token.symbol() + ' '
             token.advance()
             expression.append(self.CompileTerm())
+
+        print(self.prettify(expression))
         return expression
 
     def CompileTerm(self):
@@ -293,46 +316,47 @@ class CompilationEngine:
         elif token.tokenType() is JT.STRING_CONST:
             ET.SubElement(term, JT.STRING_CONST).text = ' ' + token.stringVal() + ' '
         elif token.keyWord() in JT.KEYWORD_CONSTS:
-            ET.SubElement(term, JT.KEYWORD_CONSTS).text = ' ' + token.keyWord() + ' '
+            ET.SubElement(term, JT.KEYWORD).text = ' ' + token.keyWord() + ' '
         elif token.tokenType() is JT.IDENTIFIER:
             ET.SubElement(term, JT.IDENTIFIER).text = ' ' + token.identifier() + ' '
             token.advance()
-            # varName
-            if token.tokenType() is JT.SYMBOL:
-                if token.symbol() == '[':
-                    ET.SubElement(term, JT.SYMBOL).text = ' ' + token.symbol() + ' '
-                    token.advance()
-                    term.append(self.CompileExpression())
-                    ET.SubElement(term, JT.SYMBOL).text = ' ' + token.symbol() + ' '
-                elif token.symbol() == '.':
-                    while token.symbol() != '(':
-                        ET.SubElement(term, JT.SYMBOL).text = ' ' + token.symbol() + ' '
-                        token.advance()
-                        ET.SubElement(term, JT.IDENTIFIER).text = ' ' + token.identifier() + ' '
-                        token.advance()
-                    ET.SubElement(term, JT.SYMBOL).text = ' ' + token.symbol() + ' '
-                    token.advance()
-                    term.append(self.CompileExpressionList())
-                    ET.SubElement(term, JT.SYMBOL).text = ' ' + token.symbol() + ' '
-                elif token.symbol() in JT.OP_LIST:
-                    ET.SubElement(term,
-                                  JT.SYMBOL).text = ' ' + token.symbol() + ' '
-                    token.advance()
-                    term.append(self.CompileTerm())
-                    ET.SubElement(term,
-                                  JT.SYMBOL).text = ' ' + token.symbol() + ' '
-        elif token.tokenType() is JT.SYMBOL:
-            if token.symbol() == '(':
-                ET.SubElement(term, JT.SYMBOL).text = ' ' + token.symbol() + ' '
+
+            if token.symbol() == '[':
+                ET.SubElement(term, JT.SYMBOL).text = ' ' + token.symbol() +\
+                                                      ' '
                 token.advance()
                 term.append(self.CompileExpression())
-                ET.SubElement(term, JT.SYMBOL).text = ' ' + token.symbol() + ' '
                 token.advance()
-            elif token.symbol() in JT.OP_LIST:
-                ET.SubElement(term,
-                              JT.SYMBOL).text = ' ' + token.symbol() + ' '
+                ET.SubElement(term, JT.SYMBOL).text = ' ' + token.symbol() +\
+                                                      ' '
+            elif token.symbol() == '(':
+                ET.SubElement(term , JT.SYMBOL).text = ' ' + token.symbol() \
+                                                       + ' '
                 token.advance()
-                term.append(self.CompileTerm())
+                term.append(self.CompileExpressionList())
+                ET.SubElement(term , JT.SYMBOL).text = ' ' + token.symbol() \
+                                                       + ' '
+            elif token.symbol() == '.':
+                ET.SubElement(term , JT.SYMBOL).text = ' ' + token.symbol() \
+                                                       + ' '
+                token.advance()
+                ET.SubElement(term, JT.IDENTIFIER).text = ' ' + token.identifier() + ' '
+                token.advance()
+                ET.SubElement(term , JT.SYMBOL).text = ' ' + token.symbol() \
+                                                       + ' '
+                token.advance()
+                term.append(self.CompileExpressionList())
+                ET.SubElement(term , JT.SYMBOL).text = ' ' + token.symbol() \
+                                                       + ' '
+                token.advance()
+        elif token.tokenType() is JT.SYMBOL and token.symbol() in JT.UOP_LIST:
+            ET.SubElement(term , JT.SYMBOL).text = ' ' + token.symbol() \
+                                                   + ' '
+            token.advance()
+            term.append(self.CompileTerm())
+            token.advance()
+
+        print(self.prettify(term))
         return term
 
     def CompileExpressionList(self):
@@ -341,4 +365,6 @@ class CompilationEngine:
         while token.symbol() != ')' and token.symbol() != ';':
             expressionList.append(self.CompileExpression())
             token.advance()
+
+        print(self.prettify(expressionList))
         return expressionList
