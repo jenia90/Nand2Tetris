@@ -66,11 +66,14 @@ class JackTockenizer:
 
     def _removeComments(self):
         newTokens = []
+        comment = False
         for i in self._lines:
             if i.startswith('/**'):
-                while not i.endswith('*/'):
-                    continue
-            else:
+                comment = True
+            if i.endswith('*/'):
+                comment = False
+                continue
+            if not comment:
                 newTokens.append(i.strip())
 
         self._lines = newTokens
