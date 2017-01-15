@@ -13,7 +13,7 @@ def main(args):
             args += os.sep
         for f in os.listdir(args):
             if f.endswith(SOURCE_EXT):
-                in_f = open(f, 'r')
+                in_f = open(args + f, 'r')
                 out_f = open(in_f.name.split(SOURCE_EXT)[0] + DEST_EXT, 'w')
                 comp_engine = CE.CompilationEngine(in_f, out_f)
                 comp_engine.CompileClass()
