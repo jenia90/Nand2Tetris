@@ -31,6 +31,9 @@ STR_REGEX = '\"[^\"\\n]*\"'
 ID_REGEX = '[\\w]+'
 
 
+str_commnent_regex = '(\"(?:\\[\S\s]|[^"\\])*\"|\'(?:\\[\S\s]|[^"\\])\'|[' \
+                     '\S\s][^/\"\'\\]*)'
+
 class JackTokenizer:
     def __init__(self, file):
         """
@@ -42,7 +45,7 @@ class JackTokenizer:
                        file.readlines()
                        if not l.strip().startswith(SINGLE_COMMENT)
                        and len(l.strip()) > 0]
-        self.removeComments()
+        self._lines = self._removeComments()
         self._splitter = re.compile(KEYWORD_REGEX + '|' + SYMBOL_REGEX + '|' +
                                     INT_REGEX + '|' + STR_REGEX + '|' + ID_REGEX)
         self._tokens = [self.procToken(token.strip()) for token in
@@ -52,25 +55,21 @@ class JackTokenizer:
     def _removeComments(self):
         """ Removes comments from the file string """
         newTokens = []
-        comment = False
         for i in self._lines:
-            if i.startswith('/**'):
+            m = re.match(r'([^\"].*\"[^/]*(//.*))', i)
+            comment = False
+            if i.startswith('/**') or i.startswith('*'):
                 comment = True
             if i.endswith('*/'):
                 comment = False
                 continue
-            if SINGLE_COMMENT in i and re.match(STR_REGEX, i):
-                newTokens.append(i.index)
             if not comment:
-                newTokens.append(i.strip())
+                if m is not None:
+                    newTokens.append(i[:i.index(m.group(2))].strip())
+                else:
+                    newTokens.append(i.split(SINGLE_COMMENT)[0].strip())
 
-        self._lines = newTokens
-
-    def removeComments(self):
-        string = re.sub(re.compile("/\*.*?\*/",re.DOTALL ) ,"" ,
-                        self._file.read())
-        string = re.sub(re.compile("//.*?\n" ) ,"" ,string)
-        return string
+        return newTokens
 
     def procToken(self, token):
         if re.match(KEYWORD_REGEX, token) is not None:
