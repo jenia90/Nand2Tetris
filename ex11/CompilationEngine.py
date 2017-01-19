@@ -1,8 +1,15 @@
 import JackTokenizer as JT
+import VMWriter as VMR
+import SymbolTable as ST
 
 TOKEN_IDX = 0
 VALUE_IDX = 1
 
+ARG = 'arg'
+METHOD = 'method'
+THIS = 'this'
+SELF = 'self'
+EMPTY = ''
 IDENTIFIER = "identifier"
 TERM = 'term'
 EXPRESSION = 'expression'
@@ -27,29 +34,10 @@ DO_STATEMENT = 'doStatement'
 class CompilationEngine:
     def __init__(self, in_f, out_f):
         self.tokenizer = JT.JackTokenizer(in_f)
-        self.parsedRules = []
-        self._outFile = out_f
-        self._indent = ""
-
-    def _addIndent(self):
-        self._indent += "  "
-
-    def _removeIndent(self):
-        self._indent = self._indent[:-2]
-
-    def _writeNonTerminalStart(self, rule):
-        self._outFile.write(self._indent + "<" + rule + ">\n")
-        self.parsedRules.append(rule)
-        self._addIndent()
-
-    def _writeNonTerminalEnd(self):
-        self._removeIndent()
-        rule = self.parsedRules.pop()
-        self._outFile.write(self._indent + "</" + rule + ">\n")
-
-    def _writeTerminal(self, token, value):
-        self._outFile.write(self._indent + "<" + token + "> " +
-                            value + " </" + token + ">\n")
+        self.vmWriter = VMR.VMWriter(out_f)
+        self.symbolTable = ST.SymbolTable()
+        self.className = EMPTY
+        self.name = EMPTY
 
     def _isParam(self):
         return not self.nextTokenIs(SYMBOL)
@@ -82,8 +70,7 @@ class CompilationEngine:
         return self.nextValueIs(VAL)
 
     def advance(self):
-        token, value = self.tokenizer.advance()
-        self._writeTerminal(token, value)
+        return self.tokenizer.advance()
 
     def nextValueIn(self, list):
         return self.tokenizer.peek()[VALUE_IDX] in list
@@ -96,62 +83,66 @@ class CompilationEngine:
 
     def WriteClassVarDec(self):
         self.advance()
+        currKind = self.tokenizer.advance()[VALUE_IDX]
         self.advance()
+        currType = self.tokenizer.advance()[VALUE_IDX]
         self.advance()
+        currName = self.tokenizer.advance()[VALUE_IDX]
+        self.symbolTable.define(currName, currType, currKind)
         while self.nextValueIs(","):
             self.advance()
-            self.advance()
+            currName = self.advance()[VALUE_IDX]
+            self.symbolTable.define(currName, currType, currKind)
         self.advance()
 
-    def writeParam(self):
-        self.advance()
-        self.advance()
+    def writeParameter(self):
+        currType = self.advance()[VALUE_IDX]
+        currName = self.advance()[VALUE_IDX]
+        self.symbolTable.define(currName, currType, ARG)
         if self.nextValueIs(","):
             self.advance()
 
     def CompileClass(self):
-        self._writeNonTerminalStart(CLASS)
         self.advance()
-        self.advance()
+        self.className = self.advance()[VALUE_IDX]
         self.advance()
         if self._isClassVarDec():
             self.CompileClassVarDec()
         while self._isSubroutine():
             self.CompileSubroutine()
         self.advance()
-        self._writeNonTerminalEnd()
-        self._outFile.close()
+        self.vmWriter.close()
 
     def CompileClassVarDec(self):
         while self._isClassVarDec():
-            self._writeNonTerminalStart(CLASS_VAR_DEC)
             self.WriteClassVarDec()
-            self._writeNonTerminalEnd()
 
     def CompileSubroutine(self):
         """
         compiles a complete method, function,
         or constructor.
         """
-        self._writeNonTerminalStart(SUBROUTINE_DEC)
+        currType = self.advance()
         self.advance()
+        self.name = self.className + '.' + self.advance()[VALUE_IDX]
+        self.symbolTable.startSubroutine(self.name)
+        self.symbolTable.setScope(self.name)
         self.advance()
+        self.CompileParameterList(currType)
         self.advance()
-        self.advance()
-        self.CompileParameterList()
-        self.advance()
-        self.CompileSubroutineBody()
-        self._writeNonTerminalEnd()
+        self.CompileSubroutineBody(currType)
 
-    def CompileParameterList(self):
-        self._writeNonTerminalStart(PARAMETER_LIST)
+    def CompileParameterList(self, currType):
+        if currType[1] == METHOD:
+            self.symbolTable.define(THIS, SELF, ARG)
         while self._isParam():
-            self.writeParam()
-        self._writeNonTerminalEnd()
+            self.writeParameter()
 
-    def CompileSubroutineBody(self):
-        self._writeNonTerminalStart(SUBROUTINE_BODY)
+    def CompileSubroutineBody(self, currType):
         self.advance()
+        while self._isVarDec():
+            self.CompileVarDec()
+        vars = self.symbolTable.varCount('var')
 
         while self._isVarDec():
             self.CompileVarDec()
