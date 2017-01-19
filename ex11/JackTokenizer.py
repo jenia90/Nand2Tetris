@@ -31,9 +31,6 @@ STR_REGEX = '\"[^\"\\n]*\"'
 ID_REGEX = '[\\w]+'
 
 
-str_commnent_regex = '(\"(?:\\[\S\s]|[^"\\])*\"|\'(?:\\[\S\s]|[^"\\])\'|[' \
-                     '\S\s][^/\"\'\\]*)'
-
 class JackTokenizer:
     def __init__(self, file):
         """
@@ -45,8 +42,7 @@ class JackTokenizer:
                        file.readlines()
                        if not l.strip().startswith(SINGLE_COMMENT)
                        and len(l.strip()) > 0]
-        self._lines = self.removeComments()
-        print(self._lines)
+        self.removeComments()
         self._splitter = re.compile(KEYWORD_REGEX + '|' + SYMBOL_REGEX + '|' +
                                     INT_REGEX + '|' + STR_REGEX + '|' + ID_REGEX)
         self._tokens = [self.procToken(token.strip()) for token in
@@ -63,16 +59,17 @@ class JackTokenizer:
             if i.endswith('*/'):
                 comment = False
                 continue
-            if not re.match('([^\"].*\"[^/]*(//.*))', i):
-                pass
+            if SINGLE_COMMENT in i and re.match(STR_REGEX, i):
+                newTokens.append(i.index)
             if not comment:
                 newTokens.append(i.strip())
 
         self._lines = newTokens
 
     def removeComments(self):
-        string = re.findall(r'([^\"].*\"[^/]*(//.*))', ''.join(self._lines))
-
+        string = re.sub(re.compile("/\*.*?\*/",re.DOTALL ) ,"" ,
+                        self._file.read())
+        string = re.sub(re.compile("//.*?\n" ) ,"" ,string)
         return string
 
     def procToken(self, token):
