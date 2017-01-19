@@ -1,81 +1,65 @@
+STATIC = 'static'
+FIELD = 'field'
+ARG = 'argument'
+LCL = 'local'
+
 
 class SymbolTable:
-
     def __init__(self):
-        """Creates a new empty symbol table"""
-        self.globalScope = {}
-        self.subroutinesScope = {}
-        self.currScope = self.globalScope
-        self.varCounter = 0
-        self.argCounter = 0
-        self.fieldCounter = 0
-        self.staticCounter = 0
-        self.ifCounter = 0
-        self.whileCounter = 0
+        self.classSymbols = dict()
+        self.subroutineSymbols = None
 
-    def startSubroutine(self, name):
-        """Starts a new subroutine scope (i.e. erases all names in the previous subroutine's scope.)"""
-        self.subroutinesScope[name] = {}
-        self.varCounter = 0
-        self.argCounter = 0
-        self.ifCounter = 0
-        self.whileCounter = 0
+    def startSubroutine(self):
+        """
+        Starts new subroutine scope.
+        :return:
+        """
+        self.subroutineSymbols = dict()
 
     def define(self, name, type, kind):
-        """Defines a new identifier of a given name, type, and kind and assigns it a running
-        index. STATIC and FIELD identifiers have a class scope, while ARG and VAR
-        identifiers have a subroutine scope. """
-        if kind == "static":
-            self.globalScope[name] = (type, kind, self.staticCounter)
-            self.staticCounter += 1
-        elif kind == "field":
-            self.globalScope[name] = (type, kind, self.fieldCounter)
-            self.fieldCounter += 1
-        elif kind == 'arg':
-            self.currScope[name] = (type, kind, self.argCounter)
-            self.argCounter += 1
-        elif kind == 'var':
-            self.currScope[name] = (type, kind, self.varCounter)
-            self.varCounter += 1
-
-    def globalsCount(self, kind):
-        return len([v for (k, v) in self.globalScope.items() if v[1] == kind])
+        """
+        Defines new identifier of the given name, kind and type and assigns
+        it a running index. STATIC and FIELD identifiers have a class scope,
+        while ARG and VAR identifiers have a subroutine scope.
+        :param name: name of the identifier
+        :param type: type of the identifier
+        :param kind: kind of the identifier
+        """
+        if kind == STATIC:
+            self.classSymbols[kind] = name
 
     def varCount(self, kind):
-        """Returns the number of variables of the given kind already defined in the current scope."""
-        return len([v for (k, v) in self.currScope.items() if v[1] == kind])
-
-    def typeOf(self, name):
-        """Returns the type of the named identifier in the current scope."""
-        if name in self.currScope:
-            return self.currScope[name][0]
-        if name in self.globalScope:
-            return self.globalScope[name][0]
-        else:
-            return "NONE"
+        """
+        Returns the number of the variables of the given kind already
+        defined n the current scope.
+        :param kind: kind of the variable.
+        :return: number of variables.
+        """
+        pass
 
     def kindOf(self, name):
-        """Returns the kind of the named identifier in
-        the current scope. Returns NONE if the
-        identifier is unknown in the current scope."""
-        if name in self.currScope:
-            return self.currScope[name][1]
-        if name in self.globalScope:
-            return self.globalScope[name][1]
-        else:
-            return "NONE"
+        """
+        Returns the kind of the named identifier in the current scope. If
+        the identifier is unknown in the current scope, returns None.
+        :param name: name of the identifier.
+        :return: kind of the identifier.
+        """
+        pass
+
+    def typeOf(self, name):
+        """
+        Returns the type of the named identifier in the current scope. If
+        the identifier is unknown in the current scope, returns None.
+        :param name: name of the identifier.
+        :return: type of the identifier
+        """
+        pass
 
     def indexOf(self, name):
-        """Returns the index assigned to named identifier."""
-        if name in self.currScope:
-            return self.currScope[name][2]
-        if name in self.globalScope:
-            return self.globalScope[name][2]
-        else:
-            return "NONE"
-
-    def setScope(self, name):
-        if name == 'global':
-            self.currScope = self.globalScope
-        else:
-            self.currScope = self.subroutinesScope[name]
+        """
+        Returns the index of the named identifier in the current scope. If
+        the identifier is unknown in the current scope, returns None.
+        :param name: name of the identifier.
+        :return: index of the identifier
+        """
+        pass
