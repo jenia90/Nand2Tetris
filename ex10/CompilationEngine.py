@@ -1,7 +1,9 @@
 import JackTokenizer as JT
 
+
 TOKEN_IDX = 0
 VALUE_IDX = 1
+INDENT_LEN = 2
 
 IDENTIFIER = "identifier"
 TERM = 'term'
@@ -9,7 +11,7 @@ EXPRESSION = 'expression'
 IF_STATEMENT = 'ifStatement'
 STATEMENTS = 'statements'
 VAR_DEC = 'varDec'
-VAL = "var"
+VAR = "var"
 SUBROUTINE_BODY = 'subroutineBody'
 SYMBOL = "symbol"
 PARAMETER_LIST = 'parameterList'
@@ -17,6 +19,12 @@ SUBROUTINE_DEC = 'subroutineDec'
 CLASS_VAR_DEC = 'classVarDec'
 STATIC = "static"
 CLASS = 'class'
+ELSE = "else"
+RET = "return"
+WHILE = "while"
+IF = "if"
+LET = "let"
+DO = "do"
 RETURN_STATEMENT = 'returnStatement'
 WHILE_STATEMENT = 'whileStatement'
 LET_STATEMENT = 'letStatement'
@@ -27,87 +35,87 @@ DO_STATEMENT = 'doStatement'
 class CompilationEngine:
     def __init__(self, in_f, out_f):
         self.tokenizer = JT.JackTokenizer(in_f)
-        self.parsedRules = []
+        self.elementStack = []
         self._outFile = out_f
         self._indent = ""
 
     def _addIndent(self):
-        self._indent += "  "
+        self._indent += " " * INDENT_LEN
 
     def _removeIndent(self):
-        self._indent = self._indent[:-2]
+        self._indent = self._indent[:-INDENT_LEN]
 
-    def _writeNonTerminalStart(self, rule):
-        self._outFile.write(self._indent + "<" + rule + ">\n")
-        self.parsedRules.append(rule)
+    def _writeNonTerminalStart(self, element):
+        self._outFile.write(self._indent + "<" + element + ">\n")
+        self.elementStack.append(element)
         self._addIndent()
 
     def _writeNonTerminalEnd(self):
         self._removeIndent()
-        rule = self.parsedRules.pop()
-        self._outFile.write(self._indent + "</" + rule + ">\n")
+        element = self.elementStack.pop()
+        self._outFile.write(self._indent + "</" + element + ">\n")
 
     def _writeTerminal(self, token, value):
         self._outFile.write(self._indent + "<" + token + "> " +
                             value + " </" + token + ">\n")
 
+    def _writeClassVarDec(self):
+        self.advance()
+        self.advance()
+        self.advance()
+        while self._nextValueIs(","):
+            self.advance()
+            self.advance()
+        self.advance()
+
+    def _writeParam(self):
+        self.advance()
+        self.advance()
+        if self._nextValueIs(","):
+            self.advance()
+
     def _isParam(self):
-        return not self.nextTokenIs(SYMBOL)
+        return not self._nextTokenIs(SYMBOL)
 
     def _isClassVarDec(self):
-        return self.nextValueIn(JT.CLASS_VARS)
+        return self._nextValueIn(JT.CLASS_VARS)
 
     def _isSubroutine(self):
-        return self.nextValueIn(JT.SUBROUTINE_TYPES)
+        return self._nextValueIn(JT.SUBROUTINE_TYPES)
 
     def _isStatement(self):
-        return self.nextValueIs("do") or\
-               self.nextValueIs("let") or\
-               self.nextValueIs("if") or\
-               self.nextValueIs("while") or\
-               self.nextValueIs("return")
+        return self._nextValueIs(DO) or \
+               self._nextValueIs(LET) or \
+               self._nextValueIs(IF) or \
+               self._nextValueIs(WHILE) or \
+               self._nextValueIs(RET)
 
     def _isExpression(self):
         return self._isTerm()
 
     def _isTerm(self):
-        return self.nextTokenIs(JT.INTEGER_CONSTANT) or \
-               self.nextTokenIs(JT.STRING_CONSTANT) or\
-               self.nextTokenIs(JT.IDENTIFIER) or\
-               self.nextValueIn(JT.UOP_LIST) or\
-               self.nextValueIn(JT.KWD_CONSTS) or\
-               self.nextValueIs('(')
+        return self._nextTokenIs(JT.INTEGER_CONSTANT) or \
+               self._nextTokenIs(JT.STRING_CONSTANT) or \
+               self._nextTokenIs(JT.IDENTIFIER) or \
+               self._nextValueIn(JT.UOP_LIST) or \
+               self._nextValueIn(JT.KWD_CONSTS) or \
+               self._nextValueIs('(')
 
     def _isVarDec(self):
-        return self.nextValueIs(VAL)
+        return self._nextValueIs(VAR)
 
     def advance(self):
         token, value = self.tokenizer.advance()
         self._writeTerminal(token, value)
 
-    def nextValueIn(self, list):
-        return self.tokenizer.peek()[VALUE_IDX] in list
+    def _nextValueIn(self, elementList):
+        return self.tokenizer.peek()[VALUE_IDX] in elementList
 
-    def nextValueIs(self, val):
-        return self.tokenizer.peek()[VALUE_IDX] == val
+    def _nextValueIs(self, value):
+        return self.tokenizer.peek()[VALUE_IDX] == value
 
-    def nextTokenIs(self, tok):
-        return self.tokenizer.peek()[TOKEN_IDX] == tok
-
-    def WriteClassVarDec(self):
-        self.advance()
-        self.advance()
-        self.advance()
-        while self.nextValueIs(","):
-            self.advance()
-            self.advance()
-        self.advance()
-
-    def writeParam(self):
-        self.advance()
-        self.advance()
-        if self.nextValueIs(","):
-            self.advance()
+    def _nextTokenIs(self, token):
+        return self.tokenizer.peek()[TOKEN_IDX] == token
 
     def CompileClass(self):
         self._writeNonTerminalStart(CLASS)
@@ -125,7 +133,7 @@ class CompilationEngine:
     def CompileClassVarDec(self):
         while self._isClassVarDec():
             self._writeNonTerminalStart(CLASS_VAR_DEC)
-            self.WriteClassVarDec()
+            self._writeClassVarDec()
             self._writeNonTerminalEnd()
 
     def CompileSubroutine(self):
@@ -146,7 +154,7 @@ class CompilationEngine:
     def CompileParameterList(self):
         self._writeNonTerminalStart(PARAMETER_LIST)
         while self._isParam():
-            self.writeParam()
+            self._writeParam()
         self._writeNonTerminalEnd()
 
     def CompileSubroutineBody(self):
@@ -165,7 +173,7 @@ class CompilationEngine:
         self.advance()
         self.advance()
         self.advance()
-        while self.nextValueIs(","):
+        while self._nextValueIs(","):
             self.advance()
             self.advance()
         self.advance()
@@ -174,15 +182,15 @@ class CompilationEngine:
     def CompileStatements(self):
         self._writeNonTerminalStart(STATEMENTS)
         while self._isStatement():
-            if self.nextValueIs("do"):
+            if self._nextValueIs(DO):
                 self.CompileDo()
-            elif self.nextValueIs("let"):
+            elif self._nextValueIs(LET):
                 self.CompileLet()
-            elif self.nextValueIs("if"):
+            elif self._nextValueIs(IF):
                 self.CompileIf()
-            elif self.nextValueIs("while"):
+            elif self._nextValueIs(WHILE):
                 self.CompileWhile()
-            elif self.nextValueIs("return"):
+            elif self._nextValueIs(RET):
                 self.CompileReturn()
         self._writeNonTerminalEnd()
 
@@ -195,7 +203,7 @@ class CompilationEngine:
 
     def CompileSubroutineCall(self):
         self.advance()
-        if self.nextValueIs("."):
+        if self._nextValueIs("."):
             self.advance()
             self.advance()
         self.advance()
@@ -206,7 +214,7 @@ class CompilationEngine:
         self._writeNonTerminalStart(EXPRESSION_LIST)
         if self._isExpression():
             self.CompileExpression()
-        while self.nextValueIs(","):
+        while self._nextValueIs(","):
             self.advance()
             self.CompileExpression()
         self._writeNonTerminalEnd()
@@ -216,7 +224,7 @@ class CompilationEngine:
         self.advance()
         self.advance()
 
-        if self.nextValueIs("["):
+        if self._nextValueIs("["):
             self.advance()
             self.CompileExpression()
             self.advance()
@@ -254,7 +262,7 @@ class CompilationEngine:
         self.advance()
         self.CompileStatements()
         self.advance()
-        if self.nextValueIs("else"):
+        if self._nextValueIs(ELSE):
             self.advance()
             self.advance()
             self.CompileStatements()
@@ -264,37 +272,37 @@ class CompilationEngine:
     def CompileExpression(self):
         self._writeNonTerminalStart(EXPRESSION)
         self.CompileTerm()
-        while self.nextValueIn(JT.OP_LIST):
+        while self._nextValueIn(JT.OP_LIST):
             self.advance()
             self.CompileTerm()
         self._writeNonTerminalEnd()
 
     def CompileTerm(self):
         self._writeNonTerminalStart(TERM)
-        if self.nextTokenIs(JT.INTEGER_CONSTANT) or \
-                self.nextTokenIs(JT.STRING_CONSTANT) or\
-                self.nextValueIn(JT.KWD_CONSTS):
+        if self._nextTokenIs(JT.INTEGER_CONSTANT) or \
+                self._nextTokenIs(JT.STRING_CONSTANT) or\
+                self._nextValueIn(JT.KWD_CONSTS):
             self.advance()
-        elif self.nextTokenIs(IDENTIFIER):
+        elif self._nextTokenIs(IDENTIFIER):
             self.advance()
-            if self.nextValueIs("["):
+            if self._nextValueIs("["):
                 self.advance()
                 self.CompileExpression()
                 self.advance()
-            if self.nextValueIs("("):
+            if self._nextValueIs("("):
                 self.advance()
                 self.CompileExpressionList()
                 self.advance()
-            if self.nextValueIs("."):
+            if self._nextValueIs("."):
                 self.advance()
                 self.advance()
                 self.advance()
                 self.CompileExpressionList()
                 self.advance()
-        elif self.nextValueIn(JT.UOP_LIST):
+        elif self._nextValueIn(JT.UOP_LIST):
             self.advance()
             self.CompileTerm()
-        elif self.nextValueIs("("):
+        elif self._nextValueIs("("):
             self.advance()
             self.CompileExpression()
             self.advance()
