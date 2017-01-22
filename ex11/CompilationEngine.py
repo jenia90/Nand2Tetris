@@ -4,33 +4,7 @@ import SymbolTable as ST
 TOKEN_IDX = 0
 VALUE_IDX = 1
 
-ARG = 'arg'
-METHOD = 'method'
-THIS = 'this'
-SELF = 'self'
-LCL = 'local'
-POINTER = 'pointer'
-C_TOR = 'constructor'
-MALLOC = 'Memory.alloc'
-CONST = 'constant'
-FIELD = 'field'
-STATIC = 'static'
-TEMP = 'temp'
-THAT = "that"
-ARGUMENT = 'argument'
-
-IDENTIFIER = "identifier"
-TERM = 'term'
-EXPRESSION = 'expression'
-IF_STATEMENT = 'ifStatement'
-STATEMENTS = 'statements'
-VAR_DEC = 'varDec'
-VAR = "var"
-SUBROUTINE_BODY = 'subroutineBody'
 SYMBOL = "symbol"
-PARAMETER_LIST = 'parameterList'
-SUBROUTINE_DEC = 'subroutineDec'
-CLASS_VAR_DEC = 'classVarDec'
 CLASS = 'class'
 ELSE = "else"
 RET = "return"
@@ -38,11 +12,6 @@ WHILE = "while"
 IF = "if"
 LET = "let"
 DO = "do"
-RETURN_STATEMENT = 'returnStatement'
-WHILE_STATEMENT = 'whileStatement'
-LET_STATEMENT = 'letStatement'
-EXPRESSION_LIST = 'expressionList'
-DO_STATEMENT = 'doStatement'
 
 
 class CompilationEngine:
@@ -81,36 +50,36 @@ class CompilationEngine:
                self.nextValueIs('(')
 
     def _isVarDec(self):
-        return self.nextValueIs(VAR)
+        return self.nextValueIs('var')
 
     def advance(self):
         return self.tokenizer.advance()
 
-    def nextValueIn(self, list):
-        return self.tokenizer.peek()[VALUE_IDX] in list
+    def nextValueIn(self, elementList):
+        return self.tokenizer.peek()[VALUE_IDX] in elementList
 
-    def nextValueIs(self, val):
-        return self.tokenizer.peek()[VALUE_IDX] == val
+    def nextValueIs(self, value):
+        return self.tokenizer.peek()[VALUE_IDX] == value
 
-    def nextTokenIs(self, tok):
-        return self.tokenizer.peek()[TOKEN_IDX] == tok
+    def nextTokenIs(self, token):
+        return self.tokenizer.peek()[TOKEN_IDX] == token
 
-    def writeParameter(self):
-        currType = self.advance()[VALUE_IDX]
-        currName = self.advance()[VALUE_IDX]
-        self.symbolTable.define(currName, currType, ARG)
+    def writeParams(self):
+        paramType = self.advance()[VALUE_IDX]
+        paramName = self.advance()[VALUE_IDX]
+        self.symbolTable.define(paramName, paramType, 'arg')
         if self.nextValueIs(','):
             self.advance()
 
     def CompileClass(self):
-        self.advance()
-        self.className = self.advance()[VALUE_IDX]
-        self.advance()
+        self.advance()  # get 'class' keyword
+        self.className = self.advance()[1]  # get class name
+        self.advance()  # get '{' symbol
         if self._isClassVarDec():
             self.CompileClassVarDec()
         while self._isSubroutine():
             self.CompileSubroutine()
-        self.advance()
+        self.advance()  # get '}' symbol
 
     def CompileClassVarDec(self):
         while self._isClassVarDec():
@@ -121,50 +90,52 @@ class CompilationEngine:
         compiles a complete method, function,
         or constructor.
         """
-        currType = self.advance()
+        subRoutType = self.advance()[VALUE_IDX]
         self.advance()
         self.name = self.className + '.' + self.advance()[VALUE_IDX]
-        self.symbolTable.startSubroutine()
+        self.symbolTable.startSubroutine(self.name)
+        self.symbolTable.setScope(self.name)
         self.advance()
-        self.CompileParameterList(currType)
+        self.CompileParameterList(subRoutType)
         self.advance()
-        self.CompileSubroutineBody(currType)
+        self.CompileSubroutineBody(subRoutType)
 
-    def CompileParameterList(self, currType):
-        if currType[1] == METHOD:
-            self.symbolTable.define(THIS, SELF, ARG)
+    def CompileParameterList(self, paramType):
+        if paramType == 'method':
+            self.symbolTable.define('this', 'self', 'arg')
         while self._isParam():
-            self.writeParameter()
+            self.writeParams()
 
-    def CompileSubroutineBody(self, currType):
+    def CompileSubroutineBody(self, subRoutineType):
         self.advance()
         while self._isVarDec():
             self.CompileVarDec()
-        nArgs = self.symbolTable.varCount(VAR)
+        nArgs = self.symbolTable.varCount('var')
         self.vw.writeFunction(self.name, nArgs)
-        self.LoadPointer(currType)
+        self.LoadPointer(subRoutineType)
         self.CompileStatements()
         self.advance()
+        self.symbolTable.setScope(ST.GLOBAL_SCOPE)
 
-    def LoadPointer(self, currType):
-        if currType[VALUE_IDX] == METHOD:
-            self.vw.writePush(ARG, 0)
-            self.vw.writePop(POINTER, 0)
-        elif currType[VALUE_IDX] == C_TOR:
-            nArgs = self.symbolTable.varCount(FIELD)
-            self.vw.writePush(CONST, nArgs)
-            self.vw.writeCall(MALLOC, 1)
-            self.vw.writePop(POINTER, 0)
+    def LoadPointer(self, pointerType):
+        if pointerType == 'method':
+            self.vw.writePush('argument', 0)
+            self.vw.writePop('pointer', 0)
+        elif pointerType == 'constructor':
+            nArgs = self.symbolTable.varCount('field')
+            self.vw.writePush('constant', nArgs)
+            self.vw.writeCall('Memory.alloc', 1)
+            self.vw.writePop('pointer', 0)
 
     def CompileVarDec(self):
-        currKind = self.tokenizer.advance()[VALUE_IDX]
-        currType = self.tokenizer.advance()[VALUE_IDX]
-        currName = self.tokenizer.advance()[VALUE_IDX]
-        self.symbolTable.define(currName, currType, currKind)
+        varKind = self.tokenizer.advance()[VALUE_IDX]
+        varType = self.tokenizer.advance()[VALUE_IDX]
+        varName = self.tokenizer.advance()[VALUE_IDX]
+        self.symbolTable.define(varName, varType, varKind)
         while self.nextValueIs(','):
             self.advance()
-            currName = self.advance()[VALUE_IDX]
-            self.symbolTable.define(currName, currType, currKind)
+            varName = self.advance()[VALUE_IDX]
+            self.symbolTable.define(varName, varType, varKind)
         self.advance()
 
     def CompileStatements(self):
@@ -183,78 +154,79 @@ class CompilationEngine:
     def CompileDo(self):
         self.advance()
         self.CompileSubroutineCall()
-        self.vw.writePop(TEMP, 0)
+        self.vw.writePop('temp', 0)
         self.advance()
 
     def CompileSubroutineCall(self):
-        lcls = 0
-        start = self.advance()[VALUE_IDX]
+        nArgs = 0
+        instName = self.advance()[VALUE_IDX]
         if self.nextValueIs('.'):
             self.advance()
-            end = self.advance()[VALUE_IDX]
-            if self.symbolTable.contains(start):
-                self.WritePush(start, end)
-                full = self.symbolTable.typeOf(start) + '.' + end
-                lcls += 1
+            subName = self.advance()[VALUE_IDX]
+            if instName in self.symbolTable.currentScopeSymbols or \
+                            instName in self.symbolTable.classSymbols:
+                self.writePush(instName, subName)
+                full = self.symbolTable.typeOf(instName) + '.' + subName
+                nArgs += 1
             else:
-                full = start + '.' + end
+                full = instName + '.' + subName
         else:
-            self.vw.writePush(POINTER, 0)
-            lcls += 1
-            full = self.className + '.' + start
+            self.vw.writePush('pointer', 0)
+            nArgs += 1
+            full = self.className + '.' + instName
         self.advance()
-        lcls += self.CompileExpressionList()
-        self.vw.writeCall(full, lcls)
+        nArgs += self.CompileExpressionList()
+        self.vw.writeCall(full, nArgs)
         self.advance()
 
     def CompileExpressionList(self):
-        counter = 0
+        count = 0
         if self._isExpression():
             self.CompileExpression()
-            counter += 1
+            count += 1
         while self.nextValueIs(','):
             self.advance()
             self.CompileExpression()
-            counter += 1
-        return counter
+            count += 1
+        return count
 
     def CompileLet(self):
         self.advance()
         arrayFlag = False
-        currName = self.advance()[1]
+        varName = self.advance()[1]
         if self.nextValueIs('['):
             arrayFlag = True
-            self.CompileArray(currName)
+            self.CompileArray(varName)
         self.advance()
         self.CompileExpression()
         if arrayFlag:
-            self.vw.writePop(TEMP, 0)
-            self.vw.writePop(POINTER, 1)
-            self.vw.writePush(TEMP, 0)
-            self.vw.writePop(THAT, 0)
+            self.vw.writePop('temp', 0)
+            self.vw.writePop('pointer', 1)
+            self.vw.writePush('temp', 0)
+            self.vw.writePop('that', 0)
         else:
-            self.WritePop(currName)
+            self.writePop(varName)
         self.advance()
 
     def CompileArray(self, name):
         self.advance()
         self.CompileExpression()
         self.advance()
-        if self.symbolTable.contains(name):
-            if self.symbolTable.kindOf(name) == VAR:
-                self.vw.writePush(LCL, self.symbolTable.indexOf(name))
-            elif self.symbolTable.kindOf(name) == ARG:
-                self.vw.writePush(ARGUMENT, self.symbolTable.indexOf(name))
+        if name in self.symbolTable.currentScopeSymbols:
+            if self.symbolTable.kindOf(name) == 'var':
+                self.vw.writePush('local', self.symbolTable.indexOf(name))
+            elif self.symbolTable.kindOf(name) == 'arg':
+                self.vw.writePush('argument', self.symbolTable.indexOf(name))
         else:
-            if self.symbolTable.kindOf(name) == STATIC:
-                self.vw.writePush(STATIC, self.symbolTable.indexOf(name))
-            elif self.symbolTable.kindOf(name) == THIS:
-                self.vw.writePush(THIS, self.symbolTable.indexOf(name))
+            if self.symbolTable.kindOf(name) == 'static':
+                self.vw.writePush('static', self.symbolTable.indexOf(name))
+            else:
+                self.vw.writePush('this', self.symbolTable.indexOf(name))
         self.vw.writeArithmetic('add')
 
     def CompileWhile(self):
-        while_count = str(self.symbolTable.countUpdate(WHILE))
-        self.symbolTable.countUpdate(WHILE, 1)
+        while_count = str(self.symbolTable.countUpdate('while', 0))
+        self.symbolTable.countUpdate('while', 1)
         self.vw.writeLabel('WHILE_EXP' + while_count)
         self.advance()
         self.advance()
@@ -270,12 +242,12 @@ class CompilationEngine:
 
     def CompileReturn(self):
         self.advance()
-        returnEmpty = True
+        noRet = True
         while self._isExpression():
-            returnEmpty = False
+            noRet = False
             self.CompileExpression()
-        if (returnEmpty):
-            self.vw.writePush(CONST, 0)
+        if noRet:
+            self.vw.writePush('constant', 0)
         self.vw.writeReturn()
         self.advance()
 
@@ -284,24 +256,24 @@ class CompilationEngine:
         self.advance()
         self.CompileExpression()
         self.advance()
-        if_count = self.symbolTable.countUpdate('if')
+        if_count = str(self.symbolTable.countUpdate('if', 0))
         self.symbolTable.countUpdate('if', 1)
-        self.vw.writeIf('IF_TRUE' + str(if_count))
-        self.vw.writeGoto('IF_FALSE' + str(if_count))
-        self.vw.writeLabel('IF_TRUE' + str(if_count))
+        self.vw.writeIf('IF_TRUE' + if_count)
+        self.vw.writeGoto('IF_FALSE' + if_count)
+        self.vw.writeLabel('IF_TRUE' + if_count)
         self.advance()
         self.CompileStatements()
         self.advance()
         if self.nextValueIs(ELSE):
-            self.vw.writeGoto('IF_END' + str(if_count))
-            self.vw.writeLabel('IF_FALSE' + str(if_count))
+            self.vw.writeGoto('IF_END' + if_count)
+            self.vw.writeLabel('IF_FALSE' + if_count)
             self.advance()
             self.advance()
             self.CompileStatements()
             self.advance()
-            self.vw.writeLabel('IF_END' + str(if_count))
+            self.vw.writeLabel('IF_END' + if_count)
         else:
-            self.vw.writeLabel('IF_FALSE' + str(if_count))
+            self.vw.writeLabel('IF_FALSE' + if_count)
 
     def CompileExpression(self):
         self.CompileTerm()
@@ -331,62 +303,63 @@ class CompilationEngine:
         array = False
         if self.nextTokenIs(JT.INTEGER_CONSTANT):
             val = self.advance()[VALUE_IDX]
-            self.vw.writePush(CONST, val)
+            self.vw.writePush('constant', val)
         elif self.nextTokenIs(JT.STRING_CONSTANT):
             val = self.advance()[VALUE_IDX]
-            self.vw.writePush(CONST, len(val))
+            self.vw.writePush('constant', len(val))
             self.vw.writeCall('String.new', 1)
             for letter in val:
-                self.vw.writePush(CONST, ord(letter))
+                self.vw.writePush('constant', ord(letter))
                 self.vw.writeCall('String.appendChar', 2)
         elif self.nextValueIn(JT.KEYWORD_CONSTS):
             val = self.advance()[1]  # get keywordConstant
-            if val == THIS:
-                self.vw.writePush(POINTER, 0)
+            if val == 'this':
+                self.vw.writePush('pointer', 0)
             else:
-                self.vw.writePush(CONST, 0)
+                self.vw.writePush('constant', 0)
                 if val == "true":
                     self.vw.writeArithmetic('not')
         elif self.nextTokenIs(JT.IDENTIFIER):
-            locals = 0
+            nArgs = 0
             name = self.advance()[VALUE_IDX]
             if self.nextValueIs("["):
                 array = True
                 self.CompileArray(name)
             if self.nextValueIs("("):
-                locals += 1
-                self.vw.writePush(POINTER, 0)
+                nArgs += 1
+                self.vw.writePush('pointer', 0)
                 self.advance()
-                locals += self.CompileExpressionList()
+                nArgs += self.CompileExpressionList()
                 self.advance()
-                self.vw.writeCall(self.className + '.' + name, locals)
+                self.vw.writeCall(self.className + '.' + name, nArgs)
             elif self.nextValueIs("."):
                 self.advance()
                 last = self.advance()[VALUE_IDX]
-                if self.symbolTable.contains(name):
-                    self.WritePush(name, last)
+                if name in self.symbolTable.currentScopeSymbols or name in \
+                        self.symbolTable.classSymbols:
+                    self.writePush(name, last)
                     name = self.symbolTable.typeOf(name) + '.' + last
-                    locals += 1
+                    nArgs += 1
                 else:
                     name = name + '.' + last
                 self.advance()
-                locals += self.CompileExpressionList()
+                nArgs += self.CompileExpressionList()
                 self.advance()
-                self.vw.writeCall(name, locals)
+                self.vw.writeCall(name, nArgs)
             else:
                 if array:
-                    self.vw.writePop(POINTER, 1)
-                    self.vw.writePush(THAT, 0)
-                elif self.symbolTable.contains(name):
-                    if self.symbolTable.kindOf(name) == VAR:
-                        self.vw.writePush(LCL, self.symbolTable.indexOf(name))
-                    elif self.symbolTable.kindOf(name) == ARG:
-                        self.vw.writePush(ARGUMENT, self.symbolTable.indexOf(name))
+                    self.vw.writePop('pointer', 1)
+                    self.vw.writePush('that', 0)
+                elif name in self.symbolTable.currentScopeSymbols:
+                    if self.symbolTable.kindOf(name) == 'var':
+                        self.vw.writePush('local', self.symbolTable.indexOf(name))
+                    elif self.symbolTable.kindOf(name) == 'arg':
+                        self.vw.writePush('argument', self.symbolTable.indexOf(name))
                 else:
-                    if self.symbolTable.kindOf(name) == STATIC:
-                        self.vw.writePush(STATIC, self.symbolTable.indexOf(name))
+                    if self.symbolTable.kindOf(name) == 'static':
+                        self.vw.writePush('static', self.symbolTable.indexOf(name))
                     else:
-                        self.vw.writePush(THIS, self.symbolTable.indexOf(name))
+                        self.vw.writePush('this', self.symbolTable.indexOf(name))
         elif self.nextValueIn(JT.UOP_LIST):
             oper = self.advance()[VALUE_IDX]
             self.CompileTerm()
@@ -399,26 +372,26 @@ class CompilationEngine:
             self.CompileExpression()
             self.advance()
 
-    def WritePush(self, currName, last):
-        if self.symbolTable.contains(currName):
-            if self.symbolTable.kindOf(currName) == VAR:
-                self.vw.writePush(LCL, self.symbolTable.indexOf(currName))
-            elif self.symbolTable.kindOf(currName) == ARG:
-                self.vw.writePush(ARGUMENT, self.symbolTable.indexOf(currName))
+    def writePush(self, name, lastName):
+        if name in self.symbolTable.currentScopeSymbols:
+            if self.symbolTable.kindOf(name) == 'var':
+                self.vw.writePush('local', self.symbolTable.indexOf(name))
+            elif self.symbolTable.kindOf(name) == 'arg':
+                self.vw.writePush('argument', self.symbolTable.indexOf(name))
         else:
-            if self.symbolTable.kindOf(currName) == STATIC:
-                self.vw.writePush(STATIC, self.symbolTable.indexOf(currName))
+            if self.symbolTable.kindOf(name) == 'static':
+                self.vw.writePush('static', self.symbolTable.indexOf(name))
             else:
-                self.vw.writePush(THIS, self.symbolTable.indexOf(currName))
+                self.vw.writePush('this', self.symbolTable.indexOf(name))
 
-    def WritePop(self, currName):
-        if self.symbolTable.contains(currName):
-            if self.symbolTable.kindOf(currName) == VAR:
-                self.vw.writePop(LCL, self.symbolTable.indexOf(currName))
-            elif self.symbolTable.kindOf(currName) == ARG:
-                self.vw.writePop(ARGUMENT, self.symbolTable.indexOf(currName))
+    def writePop(self, name):
+        if name in self.symbolTable.currentScopeSymbols:
+            if self.symbolTable.kindOf(name) == 'var':
+                self.vw.writePop('local', self.symbolTable.indexOf(name))
+            elif self.symbolTable.kindOf(name) == 'arg':
+                self.vw.writePop('argument', self.symbolTable.indexOf(name))
         else:
-            if self.symbolTable.kindOf(currName) == STATIC:
-                self.vw.writePop(STATIC, self.symbolTable.indexOf(currName))
+            if self.symbolTable.kindOf(name) == 'static':
+                self.vw.writePop('static', self.symbolTable.indexOf(name))
             else:
-                self.vw.writePop(THIS, self.symbolTable.indexOf(currName))
+                self.vw.writePop('this', self.symbolTable.indexOf(name))

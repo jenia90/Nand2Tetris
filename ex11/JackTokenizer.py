@@ -16,7 +16,7 @@ SYMBOL_LIST = ['{', '}', '(', ')', '[', ']', '.', ',', ';', '+', '-', '*',
                '/', '&', '|', '<', '>', '=', '~']
 SYMBOL_CONVERTER = {'<': '&lt;', '>': '&gt;', '"': '&quot;', '&': '&amp;'}
 
-OP_LIST = ['+', '-', '*', '/', '|', '=', '&lt;', '&gt;', '&amp;']
+OP_LIST = ['+', '-', '*', '/', '|', '=', '<', '>', '&']
 UOP_LIST = ['-', '~']
 KWD_CONSTS = ['true', 'false', 'null', 'this']
 CLASS_VARS = ['static', 'field']
@@ -24,7 +24,7 @@ VAR_TYPES = ['int', 'char', 'boolean']
 SUBROUTINE_TYPES = ['constructor', 'function', 'method']
 KEYWORD_CONSTS = ['true', 'false', 'null', 'this']
 
-COMMENT_REGEX = r'("[^\n]*"(?!\\))|(//[^\n]*$|/(?!\\)\*[\s\S]*?\*(?!\\)/)'
+COMMENT_REGEX = r'(\"[^\n]*\"(?!\\))|(//[^\n]*$|/(?!\\)\*[\s\S]*?\*(?!\\)/)'
 KEYWORD_REGEX = '(?!\\w)|'.join(KWD_LIST) + '(?!\\w)'
 SYMBOL_REGEX = '[' + re.escape('|'.join(SYMBOL_LIST)) + ']'
 INT_REGEX = '\\d+'
@@ -60,18 +60,13 @@ class JackTokenizer:
         if re.match(KEYWORD_REGEX, token) is not None:
             return KEYWORD, token
         elif re.match(SYMBOL_REGEX, token) is not None:
-            return SYMBOL, self.replace(token)
+            return SYMBOL, token
         elif re.match(INT_REGEX, token) is not None:
             return INTEGER_CONSTANT, token
         elif re.match(STR_REGEX, token) is not None:
             return STRING_CONSTANT, token[1:-1]
         else:
             return IDENTIFIER, token
-
-    def replace(self, token):
-        if token not in SYMBOL_CONVERTER:
-            return token
-        return SYMBOL_CONVERTER[token]
 
     def hasMoreTokens(self):
         return self._tokens != []

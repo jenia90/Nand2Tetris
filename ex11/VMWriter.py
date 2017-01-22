@@ -12,7 +12,7 @@ class VMWriter:
         self._out.write(command + '\n')
 
     def writeLabel(self, label):
-        self._out.write(label + '\n')
+        self._out.write('label ' + label + '\n')
 
     def writeGoto(self, label):
         self._out.write('goto ' + label + '\n')
@@ -24,7 +24,7 @@ class VMWriter:
         self._out.write('call ' + name + ' ' + str(nArgs) + '\n')
 
     def writeFunction(self, name, nArgs):
-        self._out.write('fuction ' + name + ' ' + str(nArgs) + '\n')
+        self._out.write('function ' + name + ' ' + str(nArgs) + '\n')
 
     def writeReturn(self):
         self._out.write('return\n')
