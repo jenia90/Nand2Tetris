@@ -1,0 +1,57 @@
+function CellConsts.init 0
+push constant 2
+call String.new 1
+push constant 35
+call String.appendChar 2
+push constant 70
+call String.appendChar 2
+call SymbolCell.new 1
+pop static 0
+push constant 2
+call String.new 1
+push constant 35
+call String.appendChar 2
+push constant 84
+call String.appendChar 2
+call SymbolCell.new 1
+pop static 1
+push constant 3
+call String.new 1
+push constant 78
+call String.appendChar 2
+push constant 73
+call String.appendChar 2
+push constant 76
+call String.appendChar 2
+call SymbolCell.new 1
+pop static 2
+push constant 0
+return
+function CellConsts.ERROR 0
+push constant 1
+neg
+return
+function CellConsts.SYMBOL 0
+push constant 0
+return
+function CellConsts.NUMBER 0
+push constant 1
+return
+function CellConsts.LIST 0
+push constant 2
+return
+function CellConsts.PROC 0
+push constant 3
+return
+function CellConsts.LAMBDA 0
+push constant 4
+return
+function CellConsts.FALSE 0
+push static 0
+return
+function CellConsts.TRUE 0
+push static 1
+return
+function CellConsts.NIL 0
+push static 2
+return

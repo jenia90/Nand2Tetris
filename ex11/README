@@ -4,17 +4,19 @@ Yevgeni Dysin, ID 320884216, yevgeni.dysin@mail.huji.ac.il
 Liad Elidan, ID 203380050, liad.elidan@mail.huji.ac.il
 ===============================================================================
 
-                           Project 10 - Compiler I
-                           -----------------------
+                           Project 10 - Compiler II
+                           ------------------------
   
 Submitted Files
 ---------------
 README - This file.
-JackAnalyzer - shell script for running the compiler.
+JackCompiler - shell script for running the compiler.
 Makefile - makefile
-JackAnalyzer.py - The main script file which process a directory or single file.
+JackCompiler.py - The main script file which process a directory or single file.
 JackTokenizer.py - Converts a given file to a list of tokens and categorizes each token
                     according to its kind.
-CompilationEngine.py - Compiles each code part according to the type and creates the xml
-                        output file.
+CompilationEngine.py - Compiles each code part according to the type and writes it to the output file
+						using the VMWriter object instance
+SymbolTable.py - Holds the symbols for the class scope
+VMWriter.py - Writes the vm code into an output file with the correct command syntax
 

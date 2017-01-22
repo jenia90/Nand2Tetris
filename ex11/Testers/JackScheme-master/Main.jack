@@ -1,0 +1,26 @@
+class Main {
+    static String input;
+
+    function void main() {
+        var String prompt;
+
+        let prompt = "scheme> ";
+
+        do CellConsts.init();
+        do ProcCell.init();
+
+        do Output.printString("JackScheme REPL v0.0.1");
+        do Output.println();
+        do Output.printString("Hello.");
+        do Output.println();
+        do Output.println();
+
+        while (true) {
+            let input = Keyboard.readLine(prompt);
+            do Output.printString(Parser.toString(Eval.eval(Parser.read(input), Environment.empty())));
+            do Output.println();
+        }
+
+        return;
+    }
+}

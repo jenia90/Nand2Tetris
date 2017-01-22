@@ -1,0 +1,92 @@
+/** The List class provides a linked list abstraction + comparison. */
+class List {
+    field int data; // could be void*
+    field List next;
+
+    constructor List new(int car, List cdr) {
+        let data = car;
+        let next = cdr;
+        return this;
+    }
+
+    /* Disposes this List by recursively disposing its tail. */
+    method void dispose() {
+        if (~(next = null)) {
+            do next.dispose();
+        }
+        // Use an OS routine to recycle the memory held by this
+        // object.
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    method int get(int i) {
+        if (i = 0) {
+            return data;
+        }
+        if (i < 0) {
+            do Output.printString("negative index into List");
+            return null;
+        }
+        if (~(next = null)) {
+            return next.get(i - 1);
+        }
+
+        do Output.printString("empty list access");
+        do Output.println();
+        return null;
+    }
+
+    method int head() {
+        return data;
+    }
+
+    method List tail() {
+        return next;
+    }
+
+    method void setTail(List tl) {
+        let next = tl;
+        return;
+    }
+
+    method int size() {
+        if (next = 0) {
+            return 1;
+        } else {
+            return 1 + next.size();
+        }
+    }
+
+    method List reverse() {
+        // destructive to original List
+        var List prev;
+        var List curr;
+        var List next;
+
+        let prev = null;
+        let curr = this;
+        while (~(curr = null)) {
+            let next = curr.tail();
+            do curr.setTail(prev);
+            let prev = curr;
+            let curr = next;
+        }
+        return prev;
+    }
+
+    function boolean equals(List a, List b) {
+        if ((a = null) & (b = null)) {
+            return true;
+        }
+
+        if (a = null) {
+            return false;
+        }
+        if (b = null) {
+            return false;
+        }
+
+        return List.equals(a.tail(), b.tail());
+    }
+} // class List

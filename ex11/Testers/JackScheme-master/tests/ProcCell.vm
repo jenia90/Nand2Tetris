@@ -1,0 +1,403 @@
+function ProcCell.init 0
+push constant 0
+pop static 0
+push constant 1
+pop static 1
+push constant 2
+pop static 2
+push constant 3
+pop static 3
+push constant 4
+pop static 4
+push constant 5
+pop static 5
+push constant 6
+pop static 6
+push constant 7
+pop static 7
+push constant 8
+pop static 8
+push constant 9
+pop static 9
+push constant 10
+pop static 10
+push constant 0
+return
+function ProcCell.type 0
+push argument 0
+pop pointer 0
+push this 0
+return
+function ProcCell.run 2
+push argument 0
+pop pointer 0
+push argument 1
+call List.head 1
+pop local 0
+push argument 1
+call List.tail 1
+push constant 0
+eq
+not
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push argument 1
+push constant 1
+call List.get 2
+pop local 1
+goto IF_END0
+label IF_FALSE0
+push constant 0
+pop local 1
+label IF_END0
+push this 1
+push static 0
+eq
+if-goto IF_TRUE1
+goto IF_FALSE1
+label IF_TRUE1
+push local 0
+call NumberCell.unwrap 1
+push local 1
+call NumberCell.unwrap 1
+add
+call NumberCell.new 1
+return
+label IF_FALSE1
+push this 1
+push static 1
+eq
+if-goto IF_TRUE2
+goto IF_FALSE2
+label IF_TRUE2
+push local 0
+call NumberCell.unwrap 1
+push local 1
+call NumberCell.unwrap 1
+call Math.multiply 2
+call NumberCell.new 1
+return
+label IF_FALSE2
+push this 1
+push static 2
+eq
+if-goto IF_TRUE3
+goto IF_FALSE3
+label IF_TRUE3
+push local 0
+push local 1
+call ProcCell.eq 2
+call SymbolCell.fromBoolean 1
+return
+label IF_FALSE3
+push this 1
+push static 3
+eq
+if-goto IF_TRUE4
+goto IF_FALSE4
+label IF_TRUE4
+push local 0
+call NumberCell.unwrap 1
+push local 1
+call NumberCell.unwrap 1
+gt
+call SymbolCell.fromBoolean 1
+return
+label IF_FALSE4
+push this 1
+push static 4
+eq
+if-goto IF_TRUE5
+goto IF_FALSE5
+label IF_TRUE5
+push local 0
+call ProcCell.length 1
+call NumberCell.new 1
+return
+label IF_FALSE5
+push this 1
+push static 5
+eq
+if-goto IF_TRUE6
+goto IF_FALSE6
+label IF_TRUE6
+push local 0
+call CellConsts.NIL 0
+call ProcCell.eq 2
+call SymbolCell.fromBoolean 1
+return
+label IF_FALSE6
+push this 1
+push static 6
+eq
+if-goto IF_TRUE7
+goto IF_FALSE7
+label IF_TRUE7
+push local 0
+push local 1
+call ListCell.unwrap 1
+call List.new 2
+call ListCell.new 1
+return
+label IF_FALSE7
+push this 1
+push static 7
+eq
+if-goto IF_TRUE8
+goto IF_FALSE8
+label IF_TRUE8
+push local 0
+call ProcCell.car 1
+return
+label IF_FALSE8
+push this 1
+push static 8
+eq
+if-goto IF_TRUE9
+goto IF_FALSE9
+label IF_TRUE9
+push local 0
+call ProcCell.cdr 1
+return
+label IF_FALSE9
+push this 1
+push static 9
+eq
+if-goto IF_TRUE10
+goto IF_FALSE10
+label IF_TRUE10
+push constant 0
+return
+label IF_FALSE10
+push this 1
+push static 10
+eq
+if-goto IF_TRUE11
+goto IF_FALSE11
+label IF_TRUE11
+push argument 1
+call ListCell.new 1
+return
+label IF_FALSE11
+push constant 0
+return
+function ProcCell.eq 2
+push argument 0
+push constant 0
+eq
+push argument 1
+push constant 0
+eq
+and
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push constant 0
+not
+return
+goto IF_END0
+label IF_FALSE0
+push argument 0
+push constant 0
+eq
+push argument 1
+push constant 0
+eq
+or
+if-goto IF_TRUE1
+goto IF_FALSE1
+label IF_TRUE1
+push constant 0
+return
+label IF_FALSE1
+label IF_END0
+push argument 0
+call Cell.type 1
+pop local 0
+push argument 1
+call Cell.type 1
+pop local 1
+push local 0
+push local 1
+eq
+not
+if-goto IF_TRUE2
+goto IF_FALSE2
+label IF_TRUE2
+push constant 0
+return
+label IF_FALSE2
+push local 0
+call CellConsts.SYMBOL 0
+eq
+if-goto IF_TRUE3
+goto IF_FALSE3
+label IF_TRUE3
+push argument 0
+call SymbolCell.unwrap 1
+push argument 1
+call SymbolCell.unwrap 1
+call StringList.equals 2
+return
+label IF_FALSE3
+push local 0
+call CellConsts.NUMBER 0
+eq
+if-goto IF_TRUE4
+goto IF_FALSE4
+label IF_TRUE4
+push argument 0
+call NumberCell.unwrap 1
+push argument 1
+call NumberCell.unwrap 1
+eq
+return
+label IF_FALSE4
+push local 0
+call CellConsts.LIST 0
+eq
+if-goto IF_TRUE5
+goto IF_FALSE5
+label IF_TRUE5
+push argument 0
+call ListCell.unwrap 1
+push argument 1
+call ListCell.unwrap 1
+call List.equals 2
+return
+label IF_FALSE5
+push local 0
+call CellConsts.PROC 0
+eq
+if-goto IF_TRUE6
+goto IF_FALSE6
+label IF_TRUE6
+push constant 0
+return
+label IF_FALSE6
+push local 0
+call CellConsts.LAMBDA 0
+eq
+if-goto IF_TRUE7
+goto IF_FALSE7
+label IF_TRUE7
+push constant 0
+return
+label IF_FALSE7
+push constant 0
+return
+function ProcCell.length 1
+push argument 0
+call ListCell.list 1
+pop local 0
+push local 0
+call List.size 1
+return
+function ProcCell.car 1
+push argument 0
+call ListCell.list 1
+pop local 0
+push local 0
+call List.head 1
+return
+function ProcCell.cdr 1
+push argument 0
+call ListCell.list 1
+pop local 0
+push local 0
+call List.tail 1
+call ListCell.new 1
+return
+function ProcCell.new 0
+push constant 2
+call Memory.alloc 1
+pop pointer 0
+call CellConsts.PROC 0
+pop this 0
+push argument 0
+pop this 1
+push pointer 0
+return
+function ProcCell.get 0
+push argument 0
+push constant 1
+call String.new 1
+push constant 43
+call String.appendChar 2
+call StringList.equals 2
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push static 0
+call ProcCell.new 1
+return
+label IF_FALSE0
+push argument 0
+push constant 1
+call String.new 1
+push constant 42
+call String.appendChar 2
+call StringList.equals 2
+if-goto IF_TRUE1
+goto IF_FALSE1
+label IF_TRUE1
+push static 1
+call ProcCell.new 1
+return
+label IF_FALSE1
+push argument 0
+push constant 4
+call String.new 1
+push constant 67
+call String.appendChar 2
+push constant 79
+call String.appendChar 2
+push constant 78
+call String.appendChar 2
+push constant 83
+call String.appendChar 2
+call StringList.equals 2
+if-goto IF_TRUE2
+goto IF_FALSE2
+label IF_TRUE2
+push static 6
+call ProcCell.new 1
+return
+label IF_FALSE2
+push argument 0
+push constant 3
+call String.new 1
+push constant 67
+call String.appendChar 2
+push constant 65
+call String.appendChar 2
+push constant 82
+call String.appendChar 2
+call StringList.equals 2
+if-goto IF_TRUE3
+goto IF_FALSE3
+label IF_TRUE3
+push static 7
+call ProcCell.new 1
+return
+label IF_FALSE3
+push argument 0
+push constant 3
+call String.new 1
+push constant 67
+call String.appendChar 2
+push constant 68
+call String.appendChar 2
+push constant 82
+call String.appendChar 2
+call StringList.equals 2
+if-goto IF_TRUE4
+goto IF_FALSE4
+label IF_TRUE4
+push static 8
+call ProcCell.new 1
+return
+label IF_FALSE4
+push constant 0
+return

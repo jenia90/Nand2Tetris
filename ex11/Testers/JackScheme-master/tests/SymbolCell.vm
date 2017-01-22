@@ -1,0 +1,36 @@
+function SymbolCell.type 0
+push argument 0
+pop pointer 0
+push this 0
+return
+function SymbolCell.value 0
+push argument 0
+pop pointer 0
+push this 1
+return
+function SymbolCell.new 0
+push constant 2
+call Memory.alloc 1
+pop pointer 0
+call CellConsts.SYMBOL 0
+pop this 0
+push argument 0
+pop this 1
+push pointer 0
+return
+function SymbolCell.fromBoolean 0
+push argument 0
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+call CellConsts.TRUE 0
+return
+goto IF_END0
+label IF_FALSE0
+call CellConsts.FALSE 0
+return
+label IF_END0
+function SymbolCell.unwrap 0
+push argument 0
+call SymbolCell.value 1
+return

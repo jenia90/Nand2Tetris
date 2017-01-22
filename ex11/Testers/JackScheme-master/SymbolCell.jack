@@ -1,0 +1,30 @@
+class SymbolCell {
+    field int type;
+    field String val;
+
+    method int type() {
+        return type;
+    }
+
+    method String value() {
+        return val;
+    }
+
+    constructor SymbolCell new(String v) {
+        let type = CellConsts.SYMBOL();
+        let val = v;
+        return this;
+    }
+
+    function SymbolCell fromBoolean(boolean b) {
+        if (b) {
+            return CellConsts.TRUE();
+        } else {
+            return CellConsts.FALSE();
+        }
+    }
+
+    function String unwrap(SymbolCell c) {
+        return c.value();
+    }
+}

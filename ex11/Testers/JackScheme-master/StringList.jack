@@ -1,0 +1,113 @@
+/** The StringList class provides a linked list abstraction + comparison. */
+class StringList {
+    field String data;
+    field StringList next;
+
+    constructor StringList new(String car, StringList cdr) {
+        let data = car;
+        let next = cdr;
+        return this;
+    }
+
+    method String head() {
+        return data;
+    }
+
+    method StringList tail() {
+        return next;
+    }
+
+    method void setTail(StringList tl) {
+        let next = tl;
+        return;
+    }
+
+    /* Disposes this List by recursively disposing its tail. */
+    method void dispose() {
+        if (~(next = null)) {
+            do next.dispose();
+        }
+        // Use an OS routine to recycle the memory held by this
+        // object.
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    function boolean equals(String a, String b) {
+        var int i;
+        let i = 0;
+        while (i < a.length()) {
+            if (~(a.charAt(i) = b.charAt(i))) {
+                return false;
+            }
+            let i = i + 1;
+        }
+        return (i = a.length()) & (i = b.length());
+    }
+
+    function String append(String a, String b) {
+        return StringList.appendWithExtra(a, b, 0);
+    }
+
+    function String appendWithExtra(String a, String b, int extra) {
+        var String ab;
+        var int i;
+
+        let ab = String.new(a.length() + b.length() + extra);
+
+        let i = 0;
+        while (i < a.length()) {
+            do ab.appendChar(a.charAt(i));
+            let i = i + 1;
+        }
+
+        let i = 0;
+        while (i < b.length()) {
+            do ab.appendChar(b.charAt(i));
+            let i = i + 1;
+        }
+        return ab;
+    }
+
+    method int find(String item) {
+        var int nextIdx;
+        if (StringList.equals(item, data)) {
+            return 0;
+        }
+        if (~(next = null)) {
+            let nextIdx = next.find(item);
+            if (nextIdx = -1) {
+                return -1;
+            } else {
+                return 1 + nextIdx;
+            }
+        }
+        return -1;
+    }
+
+    method StringList reverse() {
+        // destructive to original StringList (copy of List::reverse)
+        var StringList prev;
+        var StringList curr;
+        var StringList next;
+
+        let prev = null;
+        let curr = this;
+        while (~(curr = null)) {
+            let next = curr.tail();
+            do curr.setTail(prev);
+            let prev = curr;
+            let curr = next;
+        }
+        return prev;
+    }
+
+    method void print() {
+        do Output.printString(data);
+        do Output.println();
+        if (~(next = null)) {
+            do next.print();
+        }
+        return;
+    }
+} // class List

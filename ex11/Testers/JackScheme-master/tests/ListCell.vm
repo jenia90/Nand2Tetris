@@ -1,0 +1,42 @@
+function ListCell.type 0
+push argument 0
+pop pointer 0
+push this 0
+return
+function ListCell.list 0
+push argument 0
+pop pointer 0
+push this 1
+return
+function ListCell.new 0
+push constant 2
+call Memory.alloc 1
+pop pointer 0
+call CellConsts.LIST 0
+pop this 0
+push argument 0
+pop this 1
+push pointer 0
+return
+function ListCell.unwrap 0
+push argument 0
+push constant 0
+eq
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push constant 0
+return
+label IF_FALSE0
+push argument 0
+call CellConsts.NIL 0
+eq
+if-goto IF_TRUE1
+goto IF_FALSE1
+label IF_TRUE1
+push constant 0
+return
+label IF_FALSE1
+push argument 0
+call ListCell.list 1
+return

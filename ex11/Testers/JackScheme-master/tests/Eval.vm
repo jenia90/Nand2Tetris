@@ -1,0 +1,436 @@
+function Eval.eval 3
+push argument 0
+call Cell.type 1
+call CellConsts.ERROR 0
+eq
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push argument 0
+return
+label IF_FALSE0
+push argument 0
+call Cell.type 1
+call CellConsts.SYMBOL 0
+eq
+if-goto IF_TRUE1
+goto IF_FALSE1
+label IF_TRUE1
+push argument 0
+call Cell.value 1
+pop local 0
+push argument 1
+push local 0
+call Environment.find 2
+pop local 1
+push local 1
+push constant 0
+eq
+not
+if-goto IF_TRUE2
+goto IF_FALSE2
+label IF_TRUE2
+push local 1
+push local 0
+call Environment.get 2
+pop local 2
+goto IF_END2
+label IF_FALSE2
+push constant 0
+pop local 2
+label IF_END2
+push local 2
+push constant 0
+eq
+if-goto IF_TRUE3
+goto IF_FALSE3
+label IF_TRUE3
+push local 0
+call ProcCell.get 1
+pop local 2
+label IF_FALSE3
+push local 2
+push constant 0
+eq
+if-goto IF_TRUE4
+goto IF_FALSE4
+label IF_TRUE4
+push constant 0
+call ErrorCell.new 1
+return
+label IF_FALSE4
+push local 2
+return
+label IF_FALSE1
+push argument 0
+call Cell.type 1
+call CellConsts.NUMBER 0
+eq
+if-goto IF_TRUE5
+goto IF_FALSE5
+label IF_TRUE5
+push argument 0
+return
+label IF_FALSE5
+push argument 0
+call Cell.type 1
+call CellConsts.LIST 0
+eq
+if-goto IF_TRUE6
+goto IF_FALSE6
+label IF_TRUE6
+push argument 0
+push argument 1
+call Eval.evalList 2
+return
+label IF_FALSE6
+push constant 19
+call String.new 1
+push constant 105
+call String.appendChar 2
+push constant 110
+call String.appendChar 2
+push constant 118
+call String.appendChar 2
+push constant 97
+call String.appendChar 2
+push constant 108
+call String.appendChar 2
+push constant 105
+call String.appendChar 2
+push constant 100
+call String.appendChar 2
+push constant 32
+call String.appendChar 2
+push constant 99
+call String.appendChar 2
+push constant 101
+call String.appendChar 2
+push constant 108
+call String.appendChar 2
+push constant 108
+call String.appendChar 2
+push constant 32
+call String.appendChar 2
+push constant 116
+call String.appendChar 2
+push constant 121
+call String.appendChar 2
+push constant 112
+call String.appendChar 2
+push constant 101
+call String.appendChar 2
+push constant 58
+call String.appendChar 2
+push constant 32
+call String.appendChar 2
+call Output.printString 1
+pop temp 0
+push argument 0
+call Cell.type 1
+call Output.printInt 1
+pop temp 0
+call Output.println 0
+pop temp 0
+push constant 0
+return
+function Eval.evalList 3
+push argument 0
+call ListCell.list 1
+pop local 0
+push local 0
+push constant 0
+eq
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+call CellConsts.NIL 0
+return
+label IF_FALSE0
+push local 0
+call List.head 1
+pop local 1
+push local 1
+call Cell.type 1
+call CellConsts.SYMBOL 0
+eq
+if-goto IF_TRUE1
+goto IF_FALSE1
+label IF_TRUE1
+push local 1
+call Cell.value 1
+pop local 2
+push local 2
+push constant 5
+call String.new 1
+push constant 81
+call String.appendChar 2
+push constant 85
+call String.appendChar 2
+push constant 79
+call String.appendChar 2
+push constant 84
+call String.appendChar 2
+push constant 69
+call String.appendChar 2
+call StringList.equals 2
+if-goto IF_TRUE2
+goto IF_FALSE2
+label IF_TRUE2
+push local 0
+push constant 1
+call List.get 2
+return
+label IF_FALSE2
+push local 2
+push constant 2
+call String.new 1
+push constant 73
+call String.appendChar 2
+push constant 70
+call String.appendChar 2
+call StringList.equals 2
+if-goto IF_TRUE3
+goto IF_FALSE3
+label IF_TRUE3
+push local 0
+push argument 1
+call Eval.reduceIf 2
+push argument 1
+call Eval.eval 2
+return
+label IF_FALSE3
+push local 2
+push constant 6
+call String.new 1
+push constant 76
+call String.appendChar 2
+push constant 65
+call String.appendChar 2
+push constant 77
+call String.appendChar 2
+push constant 66
+call String.appendChar 2
+push constant 68
+call String.appendChar 2
+push constant 65
+call String.appendChar 2
+call StringList.equals 2
+if-goto IF_TRUE4
+goto IF_FALSE4
+label IF_TRUE4
+push local 0
+push argument 1
+call LambdaCell.new 2
+return
+label IF_FALSE4
+label IF_FALSE1
+push local 0
+push argument 1
+call Eval.evalApp 2
+return
+function Eval.reduceIf 2
+push argument 0
+push constant 1
+call List.get 2
+pop local 0
+push local 0
+push argument 1
+call Eval.eval 2
+pop local 0
+push local 0
+call Cell.value 1
+pop local 1
+push local 1
+push constant 2
+call String.new 1
+push constant 35
+call String.appendChar 2
+push constant 70
+call String.appendChar 2
+call StringList.equals 2
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push argument 0
+call List.size 1
+push constant 4
+lt
+if-goto IF_TRUE1
+goto IF_FALSE1
+label IF_TRUE1
+call CellConsts.NIL 0
+return
+goto IF_END1
+label IF_FALSE1
+push argument 0
+push constant 3
+call List.get 2
+return
+label IF_END1
+goto IF_END0
+label IF_FALSE0
+push argument 0
+push constant 2
+call List.get 2
+return
+label IF_END0
+function Eval.evalApp 3
+push argument 0
+call List.head 1
+push argument 1
+call Eval.eval 2
+pop local 0
+push constant 0
+pop local 1
+push argument 0
+call List.size 1
+push constant 1
+sub
+pop local 2
+label WHILE_EXP0
+push local 2
+push constant 0
+gt
+not
+if-goto WHILE_END0
+push argument 0
+push local 2
+call List.get 2
+push argument 1
+call Eval.eval 2
+push local 1
+call List.new 2
+pop local 1
+push local 2
+push constant 1
+sub
+pop local 2
+goto WHILE_EXP0
+label WHILE_END0
+push local 0
+call Cell.type 1
+call CellConsts.LAMBDA 0
+eq
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push local 0
+push local 1
+push argument 1
+call Eval.evalAppLambda 3
+return
+label IF_FALSE0
+push local 0
+call Cell.type 1
+call CellConsts.PROC 0
+eq
+if-goto IF_TRUE1
+goto IF_FALSE1
+label IF_TRUE1
+push local 0
+push local 1
+push argument 1
+call Eval.evalAppProc 3
+return
+label IF_FALSE1
+push constant 16
+call String.new 1
+push constant 110
+call String.appendChar 2
+push constant 111
+call String.appendChar 2
+push constant 116
+call String.appendChar 2
+push constant 32
+call String.appendChar 2
+push constant 97
+call String.appendChar 2
+push constant 32
+call String.appendChar 2
+push constant 102
+call String.appendChar 2
+push constant 117
+call String.appendChar 2
+push constant 110
+call String.appendChar 2
+push constant 99
+call String.appendChar 2
+push constant 116
+call String.appendChar 2
+push constant 105
+call String.appendChar 2
+push constant 111
+call String.appendChar 2
+push constant 110
+call String.appendChar 2
+push constant 58
+call String.appendChar 2
+push constant 32
+call String.appendChar 2
+call Output.printString 1
+pop temp 0
+push local 0
+call Parser.toString 1
+call Output.printString 1
+pop temp 0
+call Output.println 0
+pop temp 0
+push constant 1
+call ErrorCell.new 1
+return
+function Eval.evalAppLambda 6
+push argument 0
+call LambdaCell.list 1
+pop local 0
+push local 0
+push constant 1
+call List.get 2
+pop local 1
+push local 1
+call ListCell.list 1
+pop local 2
+push constant 0
+pop local 3
+label WHILE_EXP0
+push local 2
+push constant 0
+eq
+not
+not
+if-goto WHILE_END0
+push local 2
+call List.head 1
+call SymbolCell.unwrap 1
+push local 3
+call StringList.new 2
+pop local 3
+push local 2
+call List.tail 1
+pop local 2
+goto WHILE_EXP0
+label WHILE_END0
+push local 3
+call StringList.reverse 1
+pop local 3
+push argument 0
+call LambdaCell.env 1
+pop argument 2
+push local 3
+push argument 1
+push argument 2
+call Environment.new 3
+pop argument 2
+push local 0
+push constant 2
+call List.get 2
+pop local 5
+push local 5
+push argument 2
+call Eval.eval 2
+return
+function Eval.evalAppProc 0
+push argument 0
+push argument 1
+call ProcCell.run 2
+return

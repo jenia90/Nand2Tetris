@@ -1,0 +1,24 @@
+function NumberCell.type 0
+push argument 0
+pop pointer 0
+push this 0
+return
+function NumberCell.value 0
+push argument 0
+pop pointer 0
+push this 1
+return
+function NumberCell.new 0
+push constant 2
+call Memory.alloc 1
+pop pointer 0
+call CellConsts.NUMBER 0
+pop this 0
+push argument 0
+pop this 1
+push pointer 0
+return
+function NumberCell.unwrap 0
+push argument 0
+call NumberCell.value 1
+return

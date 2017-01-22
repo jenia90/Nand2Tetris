@@ -1,0 +1,40 @@
+class Environment {
+    field Environment outer_;
+
+    field StringList symbols_;
+    field List cells_;
+
+    method Environment find(String variable) {
+        if (~(symbols_ = null)) {
+            if (~(symbols_.find(variable) = -1)) {
+                return this;
+            }
+        }
+
+        if (~(outer_ = null)) {
+            return outer_.find(variable);
+        }
+
+        return null;
+    }
+
+    method Cell get(String variable) {
+        var int i;
+        let i = symbols_.find(variable);
+        return cells_.get(i);
+    }
+
+    constructor Environment new(StringList params, List exps, Environment env) {
+        let symbols_ = params;
+        let cells_ = exps;
+        let outer_ = env;
+        return this;
+    }
+
+    constructor Environment empty() {
+        let symbols_ = null;
+        let cells_ = null;
+        let outer_ = null;
+        return this;
+    }
+}

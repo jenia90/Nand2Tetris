@@ -1,0 +1,30 @@
+class ListCell {
+    field int type;
+    field List lst;
+
+    method int type() {
+        return type;
+    }
+
+    method List list() {
+        return lst;
+    }
+
+    constructor ListCell new(List l) {
+        let type = CellConsts.LIST();
+        let lst = l;
+        return this;
+    }
+
+    function List unwrap(ListCell c) {
+        if (c = null) {
+            return null; // since null is a semantically valid list
+        }
+
+        if (c = CellConsts.NIL()) {
+            return null;
+        }
+
+        return c.list();
+    }
+}
