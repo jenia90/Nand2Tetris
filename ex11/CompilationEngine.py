@@ -1,5 +1,4 @@
 import JackTokenizer as JT
-import VMWriter as VMR
 import SymbolTable as ST
 
 TOKEN_IDX = 0
@@ -9,23 +8,36 @@ ARG = 'arg'
 METHOD = 'method'
 THIS = 'this'
 SELF = 'self'
-GLOBAL = 'global'
-EMPTY = ''
-VAR = 'var'
+LCL = 'local'
+POINTER = 'pointer'
+C_TOR = 'constructor'
+MALLOC = 'Memory.alloc'
+CONST = 'constant'
+FIELD = 'field'
+STATIC = 'static'
+TEMP = 'temp'
+THAT = "that"
+ARGUMENT = 'argument'
+
 IDENTIFIER = "identifier"
 TERM = 'term'
 EXPRESSION = 'expression'
 IF_STATEMENT = 'ifStatement'
 STATEMENTS = 'statements'
 VAR_DEC = 'varDec'
-VAL = "var"
+VAR = "var"
 SUBROUTINE_BODY = 'subroutineBody'
 SYMBOL = "symbol"
 PARAMETER_LIST = 'parameterList'
 SUBROUTINE_DEC = 'subroutineDec'
 CLASS_VAR_DEC = 'classVarDec'
-STATIC = "static"
 CLASS = 'class'
+ELSE = "else"
+RET = "return"
+WHILE = "while"
+IF = "if"
+LET = "let"
+DO = "do"
 RETURN_STATEMENT = 'returnStatement'
 WHILE_STATEMENT = 'whileStatement'
 LET_STATEMENT = 'letStatement'
@@ -34,12 +46,12 @@ DO_STATEMENT = 'doStatement'
 
 
 class CompilationEngine:
-    def __init__(self, in_f, out_f):
+    def __init__(self, in_f, vmw):
         self.tokenizer = JT.JackTokenizer(in_f)
-        self.vmWriter = VMR.VMWriter(out_f)
+        self.vw = vmw
         self.symbolTable = ST.SymbolTable()
-        self.className = EMPTY
-        self.name = EMPTY
+        self.className = ''
+        self.name = ''
 
     def _isParam(self):
         return not self.nextTokenIs(SYMBOL)
@@ -51,11 +63,11 @@ class CompilationEngine:
         return self.nextValueIn(JT.SUBROUTINE_TYPES)
 
     def _isStatement(self):
-        return self.nextValueIs("do") or\
-               self.nextValueIs("let") or\
-               self.nextValueIs("if") or\
-               self.nextValueIs("while") or\
-               self.nextValueIs("return")
+        return self.nextValueIs(DO) or\
+               self.nextValueIs(LET) or\
+               self.nextValueIs(IF) or\
+               self.nextValueIs(WHILE) or\
+               self.nextValueIs(RET)
 
     def _isExpression(self):
         return self._isTerm()
@@ -69,7 +81,7 @@ class CompilationEngine:
                self.nextValueIs('(')
 
     def _isVarDec(self):
-        return self.nextValueIs(VAL)
+        return self.nextValueIs(VAR)
 
     def advance(self):
         return self.tokenizer.advance()
@@ -87,7 +99,7 @@ class CompilationEngine:
         currType = self.advance()[VALUE_IDX]
         currName = self.advance()[VALUE_IDX]
         self.symbolTable.define(currName, currType, ARG)
-        if self.nextValueIs(","):
+        if self.nextValueIs(','):
             self.advance()
 
     def CompileClass(self):
@@ -99,7 +111,6 @@ class CompilationEngine:
         while self._isSubroutine():
             self.CompileSubroutine()
         self.advance()
-        self.vmWriter.close()
 
     def CompileClassVarDec(self):
         while self._isClassVarDec():
@@ -113,8 +124,7 @@ class CompilationEngine:
         currType = self.advance()
         self.advance()
         self.name = self.className + '.' + self.advance()[VALUE_IDX]
-        self.symbolTable.startSubroutine(self.name)
-        self.symbolTable.setScope(self.name)
+        self.symbolTable.startSubroutine()
         self.advance()
         self.CompileParameterList(currType)
         self.advance()
@@ -130,29 +140,28 @@ class CompilationEngine:
         self.advance()
         while self._isVarDec():
             self.CompileVarDec()
-        vars = self.symbolTable.varCount(VAR)
-        self.vmWriter.writeFunction(self.name,vars)
+        nArgs = self.symbolTable.varCount(VAR)
+        self.vw.writeFunction(self.name, nArgs)
         self.LoadPointer(currType)
         self.CompileStatements()
         self.advance()
-        self.symbolTable.setScope(GLOBAL)
 
     def LoadPointer(self, currType):
         if currType[VALUE_IDX] == METHOD:
-            self.vmWriter.writePush('argument', 0)
-            self.vmWriter.writePop('pointer', 0)
-        elif currType[VALUE_IDX] == 'constructor':
-            globalVars = self.symbolTable.globalsCount('field')
-            self.vmWriter.writePush('constant', globalVars)
-            self.vmWriter.writeCall('Memory.alloc', 1)
-            self.vmWriter.writePop('pointer', 0)
+            self.vw.writePush(ARG, 0)
+            self.vw.writePop(POINTER, 0)
+        elif currType[VALUE_IDX] == C_TOR:
+            nArgs = self.symbolTable.varCount(FIELD)
+            self.vw.writePush(CONST, nArgs)
+            self.vw.writeCall(MALLOC, 1)
+            self.vw.writePop(POINTER, 0)
 
     def CompileVarDec(self):
         currKind = self.tokenizer.advance()[VALUE_IDX]
         currType = self.tokenizer.advance()[VALUE_IDX]
         currName = self.tokenizer.advance()[VALUE_IDX]
         self.symbolTable.define(currName, currType, currKind)
-        while self.nextValueIs(","):
+        while self.nextValueIs(','):
             self.advance()
             currName = self.advance()[VALUE_IDX]
             self.symbolTable.define(currName, currType, currKind)
@@ -160,40 +169,42 @@ class CompilationEngine:
 
     def CompileStatements(self):
         while self._isStatement():
-            if self.nextValueIs("do"):     self.CompileDo()
-            elif self.nextValueIs("let"):    self.CompileLet()
-            elif self.nextValueIs("if"):     self.CompileIf()
-            elif self.nextValueIs("while"):  self.CompileWhile()
-            elif self.nextValueIs("return"): self.CompileReturn()
+            if self.nextValueIs(DO):
+                self.CompileDo()
+            elif self.nextValueIs(LET):
+                self.CompileLet()
+            elif self.nextValueIs(IF):
+                self.CompileIf()
+            elif self.nextValueIs(WHILE):
+                self.CompileWhile()
+            elif self.nextValueIs(RET):
+                self.CompileReturn()
 
     def CompileDo(self):
         self.advance()
         self.CompileSubroutineCall()
-        self.vmWriter.writePop('temp', 0)
+        self.vw.writePop(TEMP, 0)
         self.advance()
 
     def CompileSubroutineCall(self):
-        first = EMPTY
-        last = EMPTY
-        full = EMPTY
-        locals = 0
-        first = self.advance()[VALUE_IDX]
-        if self.nextValueIs("."):
+        lcls = 0
+        start = self.advance()[VALUE_IDX]
+        if self.nextValueIs('.'):
             self.advance()
-            last = self.advance()[VALUE_IDX]
-            if first in self.symbolTable.currScope or first in self.symbolTable.globalScope:
-                self.WritePush(first, last)
-                full = self.symbolTable.typeOf(first) + '.' + last
-                locals += 1
+            end = self.advance()[VALUE_IDX]
+            if self.symbolTable.contains(start):
+                self.WritePush(start, end)
+                full = self.symbolTable.typeOf(start) + '.' + end
+                lcls += 1
             else:
-                full = first + '.' + last
+                full = start + '.' + end
         else:
-            self.vmWriter.writePush('pointer', 0)
-            locals += 1
-            full = self.className + '.' + first
+            self.vw.writePush(POINTER, 0)
+            lcls += 1
+            full = self.className + '.' + start
         self.advance()
-        locals += self.CompileExpressionList()
-        self.vmWriter.writeCall(full, locals)
+        lcls += self.CompileExpressionList()
+        self.vw.writeCall(full, lcls)
         self.advance()
 
     def CompileExpressionList(self):
@@ -201,7 +212,7 @@ class CompilationEngine:
         if self._isExpression():
             self.CompileExpression()
             counter += 1
-        while self.nextValueIs(","):
+        while self.nextValueIs(','):
             self.advance()
             self.CompileExpression()
             counter += 1
@@ -211,51 +222,50 @@ class CompilationEngine:
         self.advance()
         arrayFlag = False
         currName = self.advance()[1]
-        if self.nextValueIs("["):
+        if self.nextValueIs('['):
             arrayFlag = True
             self.CompileArray(currName)
         self.advance()
         self.CompileExpression()
         if arrayFlag:
-            self.vmWriter.writePop("temp", 0)
-            self.vmWriter.writePop("pointer", 1)
-            self.vmWriter.writePush("temp", 0)
-            self.vmWriter.writePop("that", 0)
+            self.vw.writePop(TEMP, 0)
+            self.vw.writePop(POINTER, 1)
+            self.vw.writePush(TEMP, 0)
+            self.vw.writePop(THAT, 0)
         else:
             self.WritePop(currName)
         self.advance()
 
-
-    def CompileArray(self, currName):
+    def CompileArray(self, name):
         self.advance()
         self.CompileExpression()
         self.advance()
-        if currName in self.symbolTable.currScope:
-            if self.symbolTable.kindOf(currName) == 'var':
-                self.vmWriter.writePush('local', self.symbolTable.indexOf(currName))
-            elif self.symbolTable.kindOf(currName) == 'arg':
-                self.vmWriter.writePush('argument', self.symbolTable.indexOf(currName))
+        if self.symbolTable.contains(name):
+            if self.symbolTable.kindOf(name) == VAR:
+                self.vw.writePush(LCL, self.symbolTable.indexOf(name))
+            elif self.symbolTable.kindOf(name) == ARG:
+                self.vw.writePush(ARGUMENT, self.symbolTable.indexOf(name))
         else:
-            if self.symbolTable.kindOf(currName) == 'static':
-                self.vmWriter.writePush('static', self.symbolTable.indexOf(currName))
-            elif self.symbolTable.kindOf(currName) == 'this':
-                self.vmWriter.writePush('this', self.symbolTable.indexOf(currName))
-        self.vmWriter.writeArithmetic('add')
+            if self.symbolTable.kindOf(name) == STATIC:
+                self.vw.writePush(STATIC, self.symbolTable.indexOf(name))
+            elif self.symbolTable.kindOf(name) == THIS:
+                self.vw.writePush(THIS, self.symbolTable.indexOf(name))
+        self.vw.writeArithmetic('add')
 
     def CompileWhile(self):
-        counter = str(self.symbolTable.whileCounter)
-        self.symbolTable.whileCounter += 1
-        self.vmWriter.writeLabel('WHILE_EXP' + counter)
+        while_count = str(self.symbolTable.countUpdate(WHILE))
+        self.symbolTable.countUpdate(WHILE, 1)
+        self.vw.writeLabel('WHILE_EXP' + while_count)
         self.advance()
         self.advance()
         self.CompileExpression()
-        self.vmWriter.writeArithmetic('not')
-        self.vmWriter.writeIf('WHILE_END' + counter)
+        self.vw.writeArithmetic('not')
+        self.vw.writeIf('WHILE_END' + while_count)
         self.advance()
         self.advance()
         self.CompileStatements()
-        self.vmWriter.writeGoto('WHILE_EXP' + counter)
-        self.vmWriter.writeLabel('WHILE_END' + counter)
+        self.vw.writeGoto('WHILE_EXP' + while_count)
+        self.vw.writeLabel('WHILE_END' + while_count)
         self.advance()
 
     def CompileReturn(self):
@@ -265,8 +275,8 @@ class CompilationEngine:
             returnEmpty = False
             self.CompileExpression()
         if (returnEmpty):
-            self.vmWriter.writePush('constant', 0)
-        self.vmWriter.writeReturn()
+            self.vw.writePush(CONST, 0)
+        self.vw.writeReturn()
         self.advance()
 
     def CompileIf(self):
@@ -274,141 +284,141 @@ class CompilationEngine:
         self.advance()
         self.CompileExpression()
         self.advance()
-        counter = self.symbolTable.ifCounter
-        self.symbolTable.ifCounter += 1
-        self.vmWriter.writeIf('IF_TRUE' + str(counter))
-        self.vmWriter.writeGoto('IF_FALSE' + str(counter))
-        self.vmWriter.writeLabel('IF_TRUE' + str(counter))
+        if_count = self.symbolTable.countUpdate('if')
+        self.symbolTable.countUpdate('if', 1)
+        self.vw.writeIf('IF_TRUE' + str(if_count))
+        self.vw.writeGoto('IF_FALSE' + str(if_count))
+        self.vw.writeLabel('IF_TRUE' + str(if_count))
         self.advance()
         self.CompileStatements()
         self.advance()
-        if self.nextValueIs("else"):
-            self.vmWriter.writeGoto('IF_END' + str(counter))
-            self.vmWriter.writeLabel('IF_FALSE' + str(counter))
+        if self.nextValueIs(ELSE):
+            self.vw.writeGoto('IF_END' + str(if_count))
+            self.vw.writeLabel('IF_FALSE' + str(if_count))
             self.advance()
             self.advance()
             self.CompileStatements()
             self.advance()
-            self.vmWriter.writeLabel('IF_END' + str(counter))
+            self.vw.writeLabel('IF_END' + str(if_count))
         else:
-            self.vmWriter.writeLabel('IF_FALSE' + str(counter))
+            self.vw.writeLabel('IF_FALSE' + str(if_count))
 
     def CompileExpression(self):
         self.CompileTerm()
-        while self.nextValueIn(self.binaryOp):
-            oper = self.advance()[VALUE_IDX]
+        while self.nextValueIn(JT.OP_LIST):
+            op = self.advance()[VALUE_IDX]
             self.CompileTerm()
-            if oper == '+':
-                self.vmWriter.writeArithmetic('add')
-            elif oper == '-':
-                self.vmWriter.writeArithmetic('sub')
-            elif oper == '*':
-                self.vmWriter.writeCall('Math.multiply', 2)
-            elif oper == '/':
-                self.vmWriter.writeCall('Math.divide', 2)
-            elif oper == '|':
-                self.vmWriter.writeArithmetic('or')
-            elif oper == '&':
-                self.vmWriter.writeArithmetic('and')
-            elif oper == '=':
-                self.vmWriter.writeArithmetic('eq')
-            elif oper == '<':
-                self.vmWriter.writeArithmetic('lt')
-            elif oper == '>':
-                self.vmWriter.writeArithmetic('gt')
+            if op == '+':
+                self.vw.writeArithmetic('add')
+            elif op == '-':
+                self.vw.writeArithmetic('sub')
+            elif op == '*':
+                self.vw.writeCall('Math.multiply', 2)
+            elif op == '/':
+                self.vw.writeCall('Math.divide', 2)
+            elif op == '|':
+                self.vw.writeArithmetic('or')
+            elif op == '&':
+                self.vw.writeArithmetic('and')
+            elif op == '=':
+                self.vw.writeArithmetic('eq')
+            elif op == '<':
+                self.vw.writeArithmetic('lt')
+            elif op == '>':
+                self.vw.writeArithmetic('gt')
 
     def CompileTerm(self):
         array = False
-        if self.nextTokenIs("integerConstant"):
+        if self.nextTokenIs(JT.INTEGER_CONSTANT):
             val = self.advance()[VALUE_IDX]
-            self.vmWriter.writePush('constant', val)
-        elif self.nextTokenIs("stringConstant"):
+            self.vw.writePush(CONST, val)
+        elif self.nextTokenIs(JT.STRING_CONSTANT):
             val = self.advance()[VALUE_IDX]
-            self.vmWriter.writePush('constant', len(val))
-            self.vmWriter.writeCall('String.new', 1)
+            self.vw.writePush(CONST, len(val))
+            self.vw.writeCall('String.new', 1)
             for letter in val:
-                self.vmWriter.writePush('constant', ord(letter))
-                self.vmWriter.writeCall('String.appendChar', 2)
-        elif self.nextValueIn(self.keywordConstant):
+                self.vw.writePush(CONST, ord(letter))
+                self.vw.writeCall('String.appendChar', 2)
+        elif self.nextValueIn(JT.KEYWORD_CONSTS):
             val = self.advance()[1]  # get keywordConstant
-            if val == "this":
-                self.vmWriter.writePush('pointer', 0)
+            if val == THIS:
+                self.vw.writePush(POINTER, 0)
             else:
-                self.vmWriter.writePush('constant', 0)
+                self.vw.writePush(CONST, 0)
                 if val == "true":
-                    self.vmWriter.writeArithmetic('not')
-        elif self.nextTokenIs("identifier"):
+                    self.vw.writeArithmetic('not')
+        elif self.nextTokenIs(JT.IDENTIFIER):
             locals = 0
-            currName = self.advance()[VALUE_IDX]
+            name = self.advance()[VALUE_IDX]
             if self.nextValueIs("["):
                 array = True
-                self.CompileArray(currName)
+                self.CompileArray(name)
             if self.nextValueIs("("):
                 locals += 1
-                self.vmWriter.writePush('pointer', 0)
+                self.vw.writePush(POINTER, 0)
                 self.advance()
                 locals += self.CompileExpressionList()
                 self.advance()
-                self.vmWriter.writeCall(self.className + '.' + currName, locals)
+                self.vw.writeCall(self.className + '.' + name, locals)
             elif self.nextValueIs("."):
                 self.advance()
                 last = self.advance()[VALUE_IDX]
-                if currName in self.symbolTable.currScope or currName in self.symbolTable.globalScope:
-                    self.WritePush(currName, last)
-                    currName = self.symbolTable.typeOf(currName) + '.' + last
+                if self.symbolTable.contains(name):
+                    self.WritePush(name, last)
+                    name = self.symbolTable.typeOf(name) + '.' + last
                     locals += 1
                 else:
-                    currName = currName + '.' + last
+                    name = name + '.' + last
                 self.advance()
                 locals += self.CompileExpressionList()
                 self.advance()
-                self.vmWriter.writeCall(currName, locals)
+                self.vw.writeCall(name, locals)
             else:
                 if array:
-                    self.vmWriter.writePop('pointer', 1)
-                    self.vmWriter.writePush('that', 0)
-                elif currName in self.symbolTable.currScope:
-                    if self.symbolTable.kindOf(currName) == 'var':
-                        self.vmWriter.writePush('local', self.symbolTable.indexOf(currName))
-                    elif self.symbolTable.kindOf(currName) == 'arg':
-                        self.vmWriter.writePush('argument', self.symbolTable.indexOf(currName))
+                    self.vw.writePop(POINTER, 1)
+                    self.vw.writePush(THAT, 0)
+                elif self.symbolTable.contains(name):
+                    if self.symbolTable.kindOf(name) == VAR:
+                        self.vw.writePush(LCL, self.symbolTable.indexOf(name))
+                    elif self.symbolTable.kindOf(name) == ARG:
+                        self.vw.writePush(ARGUMENT, self.symbolTable.indexOf(name))
                 else:
-                    if self.symbolTable.kindOf(currName) == 'static':
-                        self.vmWriter.writePush('static', self.symbolTable.indexOf(currName))
+                    if self.symbolTable.kindOf(name) == STATIC:
+                        self.vw.writePush(STATIC, self.symbolTable.indexOf(name))
                     else:
-                        self.vmWriter.writePush('this', self.symbolTable.indexOf(currName))
-        elif self.nextValueIn(self.unaryOp):
+                        self.vw.writePush(THIS, self.symbolTable.indexOf(name))
+        elif self.nextValueIn(JT.UOP_LIST):
             oper = self.advance()[VALUE_IDX]
             self.CompileTerm()
             if oper == '-':
-                self.vmWriter.writeArithmetic('neg')
+                self.vw.writeArithmetic('neg')
             elif oper == '~':
-                self.vmWriter.writeArithmetic('not')
+                self.vw.writeArithmetic('not')
         elif self.nextValueIs("("):
             self.advance()
             self.CompileExpression()
             self.advance()
 
     def WritePush(self, currName, last):
-        if currName in self.symbolTable.currScope:
-            if self.symbolTable.kindOf(currName) == 'var':
-                self.vmWriter.writePush('local', self.symbolTable.indexOf(currName))
-            elif self.symbolTable.kindOf(currName) == 'arg':
-                self.vmWriter.writePush('argument', self.symbolTable.indexOf(currName))
+        if self.symbolTable.contains(currName):
+            if self.symbolTable.kindOf(currName) == VAR:
+                self.vw.writePush(LCL, self.symbolTable.indexOf(currName))
+            elif self.symbolTable.kindOf(currName) == ARG:
+                self.vw.writePush(ARGUMENT, self.symbolTable.indexOf(currName))
         else:
-            if self.symbolTable.kindOf(currName) == 'static':
-                self.vmWriter.writePush('static', self.symbolTable.indexOf(currName))
+            if self.symbolTable.kindOf(currName) == STATIC:
+                self.vw.writePush(STATIC, self.symbolTable.indexOf(currName))
             else:
-                self.vmWriter.writePush('this', self.symbolTable.indexOf(currName))
+                self.vw.writePush(THIS, self.symbolTable.indexOf(currName))
 
     def WritePop(self, currName):
-        if currName in self.symbolTable.currScope:
-            if self.symbolTable.kindOf(currName) == 'var':
-                self.vmWriter.writePop('local', self.symbolTable.indexOf(currName))
-            elif self.symbolTable.kindOf(currName) == 'arg':
-                self.vmWriter.writePop('argument', self.symbolTable.indexOf(currName))
+        if self.symbolTable.contains(currName):
+            if self.symbolTable.kindOf(currName) == VAR:
+                self.vw.writePop(LCL, self.symbolTable.indexOf(currName))
+            elif self.symbolTable.kindOf(currName) == ARG:
+                self.vw.writePop(ARGUMENT, self.symbolTable.indexOf(currName))
         else:
-            if self.symbolTable.kindOf(currName) == 'static':
-                self.vmWriter.writePop('static', self.symbolTable.indexOf(currName))
+            if self.symbolTable.kindOf(currName) == STATIC:
+                self.vw.writePop(STATIC, self.symbolTable.indexOf(currName))
             else:
-                self.vmWriter.writePop('this', self.symbolTable.indexOf(currName))
+                self.vw.writePop(THIS, self.symbolTable.indexOf(currName))

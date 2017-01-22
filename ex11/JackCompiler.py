@@ -1,8 +1,9 @@
 import sys, os
 import CompilationEngine as CE
+import VMWriter as VMW
 
 SOURCE_EXT = '.jack'
-DEST_EXT = '.xml'
+DEST_EXT = '.vm'
 
 def main(args):
     if args is None:
@@ -14,19 +15,19 @@ def main(args):
         for f in os.listdir(args):
             if f.endswith(SOURCE_EXT):
                 in_f = open(args + f, 'r')
-                out_f = open(in_f.name.split(SOURCE_EXT)[0] + DEST_EXT, 'w')
-                comp_engine = CE.CompilationEngine(in_f, out_f)
+                vmwriter = VMW.VMWriter(in_f.name.split(SOURCE_EXT)[0] + DEST_EXT)
+                comp_engine = CE.CompilationEngine(in_f, vmwriter)
                 comp_engine.CompileClass()
-                out_f.close()
+                vmwriter.close()
                 in_f.close()
 
     # process single file
     elif os.path.isfile(args) and args.endswith(SOURCE_EXT):
         in_f = open(args, 'r')
-        out_f = open(in_f.name.split(SOURCE_EXT)[0] + DEST_EXT, 'w')
-        comp_engine = CE.CompilationEngine(in_f, out_f)
+        vmwriter = VMW.VMWriter(in_f.name.split(SOURCE_EXT)[0] + DEST_EXT)
+        comp_engine = CE.CompilationEngine(in_f, vmwriter)
         comp_engine.CompileClass()
-        out_f.close()
+        vmwriter.close()
         in_f.close()
 
 if __name__ == '__main__':
