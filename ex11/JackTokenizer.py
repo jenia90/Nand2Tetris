@@ -43,6 +43,7 @@ class JackTokenizer:
                                     INT_REGEX + '|' + STR_REGEX + '|' + ID_REGEX)
         self._tokens = [self.procToken(token.strip()) for token in
                         self._splitter.findall(self._lines)]
+        print(self._tokens)
         self._currToken = ""
 
     def uncomment(self, s):
