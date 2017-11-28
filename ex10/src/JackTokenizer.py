@@ -25,6 +25,8 @@ class JackTokenizer:
 
         self._lines = self.cleanup(file.read())
         self._tokens = self.tokenize()
+        self._current_token = ''
+        self._current_index = -1
 
     def cleanup(self, text):
 
@@ -52,6 +54,13 @@ class JackTokenizer:
         return [Token(token, get_kind(token)) for token in
                         split_re.findall(self._lines)]
 
+    def has_more_tokens(self):
+        return self._current_index < len(self._tokens)
+
+    def advance(self):
+        self._current_index += 1
+        self._current_token = self._tokens[self._current_index]
+        return self._current_token
 
     def double_next(self):
         pass

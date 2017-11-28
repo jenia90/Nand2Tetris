@@ -2,9 +2,20 @@ class Token:
     def __init__(self, value, kind):
         self._val = value
         self._kind = kind
+        self.__clean_value()
         self._symbol_conversion = {'<': '&lt;', '>': '&gt;', '"': '&quot;', '&': '&amp;'}
+
+    def __clean_value(self):
+        if self._kind == "stringConstant":
+            self._val = self._val[1:-1]
+
+    def getKind(self):
+        return self._kind
+
+    def getValue(self):
+        return self._val
 
     def __repr__(self):
         if self._kind == 'symbol' and self._val in self._symbol_conversion:
             return self._symbol_conversion[self._val], self._kind
-        return "{},{}"
+        return "<%s> %s </%s>" % (self._kind, self._val, self._kind)
