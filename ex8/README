@@ -3,15 +3,15 @@ jenia90
 Yevgeni Dysin, ID 320884216, yevgeni.dysin@mail.huji.ac.il
 ===============================================================================
 
-                           Project 7 - Virtual Machine
-                           ---------------------
+                           Project 8 - Virtual Machine: Part II
+                           ------------------------------------
   
 Submitted Files
 ---------------
 README - This file.
 VMTranslator - shell script for running the assembler.
 Makefile - makefile
-CodeWriter.py - responsible for converting vm commands into hack assembly code and writing
+CodeWriter.py - resposible for converting vm commands into hack assembly code and writing 
 				it to the output file.
 Parser.py - VM file parser
 VMTranslator.py - main file which processes the input and converts it into asm 

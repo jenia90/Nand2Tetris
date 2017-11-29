@@ -26,7 +26,7 @@ ADD_COMM = 'add'
 RET_KWD = 'return'
 CALL_KWD = 'call'
 FUNCTION_KWD = 'function'
-iF_GOTO_KWD = 'if-goto'
+IF_GOTO_KWD = 'if-goto'
 GOTO_KWD = 'goto'
 LABEL_KWD = 'label'
 PUSH_KWD = 'push'
@@ -105,14 +105,14 @@ class Parser:
             return LABEL_COMM
         elif self._currCommandArray[CMD_IDX] == GOTO_KWD:
             return GOTO_COMM
-        elif self._currCommandArray[CMD_IDX] == iF_GOTO_KWD:
+        elif self._currCommandArray[CMD_IDX] == IF_GOTO_KWD:
             return IF_COMM
         elif self._currCommandArray[CMD_IDX] == FUNCTION_KWD:
             return FUNCTION_COMM
         elif self._currCommandArray[CMD_IDX] == CALL_KWD:
-            return FUNCTION_COMM
+            return CALL_COMM
         elif self._currCommandArray[CMD_IDX] == RET_KWD:
-            return FUNCTION_COMM
+            return RETURN_COMM
 
     def getCommandString(self):
         """
