@@ -1,12 +1,12 @@
+from xml.etree.ElementTree import Element
+
 from JackTokenizer import JackTokenizer
-from xml.etree.ElementTree import Element, SubElement
+
 
 class CompilationEngine:
     def __init__(self, in_f, out_f):
         self._in_f, self._out_f = in_f, out_f
         self._tokenizer = JackTokenizer(self._in_f)
-        for t in self._tokenizer._tokens:
-            print(self._tokenizer.advance())
         self._tree = self.create_tree()
 
     def create_tree(self):
