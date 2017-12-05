@@ -2,23 +2,23 @@ import re
 
 from src.Token import Token
 
+KEYWORDS = ['class', 'constructor', 'function', 'method', 'field', 'static',
+                          'var', 'int', 'char', 'boolean', 'void', 'true', 'false',
+                          'null', 'this', 'let', 'do', 'if', 'else', 'while', 'return']
+SYMBOLS = ['{', '}', '(', ')', '[', ']', '.', ',', ';', '+', '-', '*',
+                         '/', '&', '|', '<', '>', '=', '~']
+OPERATORS = ['+', '-', '*', '/', '|', '=', '&lt;', '&gt;', '&amp;']
+UNARY_OPERATORS = ['-', '~']
+CONSTANTS = ['true', 'false', 'null', 'this']
+CLASS_VARIABLES = ['static', 'field']
+VARIABLES = ['int', 'char', 'boolean']
+SUBROUTINE = ['constructor', 'function', 'method']
+
 
 class JackTokenizer:
     def __init__(self, file):
-        self._keywords = ['class', 'constructor', 'function', 'method', 'field', 'static',
-                          'var', 'int', 'char', 'boolean', 'void', 'true', 'false',
-                          'null', 'this', 'let', 'do', 'if', 'else', 'while', 'return']
-        self._symbols = ['{', '}', '(', ')', '[', ']', '.', ',', ';', '+', '-', '*',
-                         '/', '&', '|', '<', '>', '=', '~']
-        self._operators = ['+', '-', '*', '/', '|', '=', '&lt;', '&gt;', '&amp;']
-        self._un_operators = ['-', '~']
-        self._constants = ['true', 'false', 'null', 'this']
-        self._class_variables = ['static', 'field']
-        self._variables = ['int', 'char', 'boolean']
-        self._subroutine = ['constructor', 'function', 'method']
-
-        self.keyword_re = '(?!\\w)|'.join(self._keywords) + '(?!\\w)'
-        self.symbol_re = '[' + re.escape('|'.join(self._symbols)) + ']'
+        self.keyword_re = '(?!\\w)|'.join(KEYWORDS) + '(?!\\w)'
+        self.symbol_re = '[' + re.escape('|'.join(SYMBOLS)) + ']'
         self.int_re = '\\d+'
         self.string_re = '\"[^\"\\n]*\"'
         self.id_re = '[\\w]+'
@@ -63,7 +63,7 @@ class JackTokenizer:
         return self._current_token
 
     def double_next(self):
-        pass
+        return self._tokens[self._current_index + 2]
 
     def next(self):
-        pass
+        return self._tokens[self._current_index + 1]
