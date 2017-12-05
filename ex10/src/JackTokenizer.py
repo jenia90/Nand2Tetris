@@ -13,6 +13,7 @@ CONSTANTS = ['true', 'false', 'null', 'this']
 CLASS_VARIABLES = ['static', 'field']
 VARIABLES = ['int', 'char', 'boolean']
 SUBROUTINE = ['constructor', 'function', 'method']
+CONSTANT_TYPES = ['integerConstant', 'stringConstant', 'keyword']
 
 
 class JackTokenizer:

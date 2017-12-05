@@ -1,8 +1,9 @@
 import xml.etree.cElementTree as ET
 
 
-from src.JackTokenizer import JackTokenizer, KEYWORDS, SYMBOLS, OPERATORS, UNARY_OPERATORS, VARIABLES, CLASS_VARIABLES, \
-    SUBROUTINE, CONSTANTS
+from src.JackTokenizer import JackTokenizer, KEYWORDS, SYMBOLS, OPERATORS, \
+    UNARY_OPERATORS, VARIABLES, CLASS_VARIABLES, \
+    SUBROUTINE, CONSTANTS, CONSTANT_TYPES
 
 PARAMETER_LIST = 'parameterList'
 SUBROUTINE_DEC = 'subroutineDec'
@@ -43,26 +44,41 @@ class CompilationEngine:
         root.append(self.__get_next_token())
         root.append(self.__get_next_token())
 
-        if self.__check_next_value() in CLASS_VARIABLES:
+        while self.__check_next_value() in CLASS_VARIABLES:
             root.append(self.compile_class_var_dec())
         while self.__check_next_value() in SUBROUTINE:
             root.append(self.compile_subroutine())
 
         root.append(self.__get_next_token())
+        self.indent(root)  #prettify the xml
         tree = ET.ElementTree(root)
 
         tree.write(self._out_f, encoding='unicode', short_empty_elements=False)
 
+    def indent(self, elem, level=0):
+        i = "\n" + level * "  "
+        if len(elem):
+            if not elem.text or not elem.text.strip():
+                elem.text = i + "  "
+            if not elem.tail or not elem.tail.strip():
+                elem.tail = i
+            for elem in elem:
+                self.indent(elem, level + 1)
+            if not elem.tail or not elem.tail.strip():
+                elem.tail = i
+        else:
+            if level and (not elem.tail or not elem.tail.strip()):
+                elem.tail = i
+
     def compile_class_var_dec(self):
         root = ET.Element(CLASS_VAR_DEC)
-        while self.__check_next_value() in CLASS_VARIABLES:
+        root.append(self.__get_next_token())
+        root.append(self.__get_next_token())
+        root.append(self.__get_next_token())
+        while self.__check_next_value() == ',':
             root.append(self.__get_next_token())
             root.append(self.__get_next_token())
-            root.append(self.__get_next_token())
-            while self.__check_next_value() == ',':
-                root.append(self.__get_next_token())
-                root.append(self.__get_next_token())
-            root.append(self.__get_next_token())
+        root.append(self.__get_next_token())
         return root
 
     def compile_subroutine(self):
@@ -71,8 +87,7 @@ class CompilationEngine:
         root.append(self.__get_next_token())
         root.append(self.__get_next_token())
         root.append(self.__get_next_token())
-        if self.__check_next_value() != ')':
-            root.append(self.compile_param_list())
+        root.append(self.compile_param_list())
         root.append(self.__get_next_token())
         root.append(self.compile_subroutine_body())
 
@@ -80,11 +95,15 @@ class CompilationEngine:
 
     def compile_param_list(self):
         root = ET.Element(PARAMETER_LIST)
-        root.append(self.__get_next_token())
-        root.append(self.__get_next_token())
-        while self.__check_next_value() == ',':
-            root.append(self.__get_next_token())
-            root.append(self.__get_next_token())
+        if self.__check_next_value() != ')':
+            while self.__check_next_type() != 'symbol':
+                root.append(self.__get_next_token())
+                root.append(self.__get_next_token())
+                if self.__check_next_value() == ',':
+                    root.append(self.__get_next_token())
+        else:
+            root.text = '\n'
+
         return root
 
     def compile_subroutine_body(self):
@@ -110,7 +129,6 @@ class CompilationEngine:
     def compile_statements(self):
         root = ET.Element('statements')
         while self.__check_next_value() in STATEMENTS:
-            print(self.__check_next_value())
             if self.__check_next_value() == 'let':
                 root.append(self.compile_let())
             elif self.__check_next_value() == 'do':
@@ -121,13 +139,12 @@ class CompilationEngine:
                 root.append(self.compile_while())
             elif self.__check_next_value() == 'return':
                 root.append(self.compile_return())
-
         return root
 
     def compile_do(self):
         root = ET.Element(DO_STATEMENT)
         root.append(self.__get_next_token())  # do
-        root.append(self.compile_subroutine_call())
+        root.extend(self.compile_subroutine_call())
         root.append(self.__get_next_token())
         return root
 
@@ -153,7 +170,7 @@ class CompilationEngine:
         root = ET.Element(RETURN_STATEMENT)
         root.append(self.__get_next_token())
         if self.__check_next_value() != ';':
-            self.compile_expression()
+            root.append(self.compile_expression())
         root.append(self.__get_next_token())
         return root
 
@@ -176,56 +193,63 @@ class CompilationEngine:
     def compile_expression(self):
         root = ET.Element('expression')
         root.append(self.compile_term())
-        while self.__check_next_type() in OPERATORS:
-            root.append(self.__get_next_token())
+        while self.__check_next_value() in OPERATORS:
+            root.append(self.__get_next_token())  # op
             root.append(self.compile_term())
-        # TODO: Fix expression/term prints
 
         return root
 
     def compile_term(self):
         root = ET.Element('term')
-        kind = self.__check_next_type()
-        if kind in CONSTANTS:
+        if self.__check_next_type() in CONSTANT_TYPES or  \
+                self.__check_next_value() in CONSTANTS:
             root.append(self.__get_next_token())
         elif self.__check_next_type() == 'identifier':
             root.append(self.__get_next_token())
             if self.__check_next_value() == '[':
-                root.append(self.__get_next_token())
+                root.append(self.__get_next_token())  # [
                 root.append(self.compile_expression())
-                root.append(self.__get_next_token())
-            elif self.__check_next_value() == '(':
-                root.append(self.__get_next_token())
+                root.append(self.__get_next_token())  # ]
+            if self.__check_next_value() == '(':
+                root.append(self.__get_next_token())  # (
                 root.append(self.compile_expression_list())
-                root.append(self.__get_next_token())
-            elif self.__check_next_value() == '.':
-                root.append(self.__get_next_token())
-                root.append(self.__get_next_token())
-                root.append(self.__get_next_token())
-                self.compile_expression_list()
-                root.append(self.__get_next_token())
+                root.append(self.__get_next_token())  # )
+            if self.__check_next_value() == '.':
+                root.append(self.__get_next_token())  # .
+                root.append(self.__get_next_token())  # subname
+                root.append(self.__get_next_token())  # (
+                root.append(self.compile_expression_list())
+                root.append(self.__get_next_token())  # )
         elif self.__check_next_value() in UNARY_OPERATORS:
             root.append(self.__get_next_token())
-            self.compile_expression()
-            root.append(self.__get_next_token())
+            root.append(self.compile_term())
+        elif self.__check_next_value() == '(':
+            root.append(self.__get_next_token())  # (
+            root.append(self.compile_expression())
+            root.append(self.__get_next_token())  # )
 
         return root
 
     def compile_expression_list(self):
         root = ET.Element('expressionList')
-        root.append(self.compile_expression())
-        while self.__check_next_value() == ',':
-            root.append(self.compile_expression())
+        if self.__check_next_value() != ')':
+            if self.__check_next_type() in CONSTANT_TYPES + CONSTANTS + \
+                    UNARY_OPERATORS:
+                root.append(self.compile_expression())
+            while self.__check_next_value() == ',':
+                root.append(self.__get_next_token())
+                root.append(self.compile_expression())
+        else:
+            root.text = '\n'
         return root
 
     def compile_subroutine_call(self):
         root = ET.Element('subroutineCall')
         root.append(self.__get_next_token())
-        while self.__check_next_value() != '(':
+        while self.__check_next_value() == '.':
             root.append(self.__get_next_token())
             root.append(self.__get_next_token())
         root.append(self.__get_next_token())
-        if self.__check_next_value() != ')':
-            root.append(self.compile_expression_list())
+        root.append(self.compile_expression_list())
         root.append(self.__get_next_token())
         return root
