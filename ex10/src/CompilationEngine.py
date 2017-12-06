@@ -163,7 +163,13 @@ class CompilationEngine:
 
     def compile_while(self):
         root = ET.Element(WHILE_STATEMENT)
-        # TODO: Implement.
+        root.append(self.__get_next_token())  # while
+        root.append(self.__get_next_token())  # (
+        root.append(self.compile_expression())
+        root.append(self.__get_next_token())  # )
+        root.append(self.__get_next_token())  # {
+        root.append(self.compile_statements())
+        root.append(self.__get_next_token())  # }
         return root
 
     def compile_return(self):
@@ -233,9 +239,8 @@ class CompilationEngine:
     def compile_expression_list(self):
         root = ET.Element('expressionList')
         if self.__check_next_value() != ')':
-            if self.__check_next_type() in CONSTANT_TYPES + CONSTANTS + \
-                    UNARY_OPERATORS:
-                root.append(self.compile_expression())
+            root.append(self.__get_next_token())
+            root.append(self.compile_expression())
             while self.__check_next_value() == ',':
                 root.append(self.__get_next_token())
                 root.append(self.compile_expression())
