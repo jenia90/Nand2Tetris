@@ -36,7 +36,10 @@ class CompilationEngine:
         return self._tokenizer.double_next().getValue()
 
     def create_tree(self):
-        self.compile_class()
+        root = self.compile_class()
+        self.indent(root)
+        tree = ET.ElementTree(root)
+        tree.write(self._out_f, encoding='unicode', short_empty_elements=False)
 
     def compile_class(self):
         root = ET.Element('class')
@@ -50,10 +53,7 @@ class CompilationEngine:
             root.append(self.compile_subroutine())
 
         root.append(self.__get_next_token())
-        self.indent(root)  #prettify the xml
-        tree = ET.ElementTree(root)
-
-        tree.write(self._out_f, encoding='unicode', short_empty_elements=False)
+        return root
 
     def indent(self, elem, level=0):
         i = "\n" + level * "  "
@@ -182,23 +182,23 @@ class CompilationEngine:
 
     def compile_if(self):
         root = ET.Element('ifStatement')
-        root.append(self.__get_next_token())
-        root.append(self.__get_next_token())
+        root.append(self.__get_next_token())  # if
+        root.append(self.__get_next_token())  # (
         root.append(self.compile_expression())
-        root.append(self.__get_next_token())
-        root.append(self.__get_next_token())
+        root.append(self.__get_next_token())  # )
+        root.append(self.__get_next_token())  # {
         root.append(self.compile_statements())
-        root.append(self.__get_next_token())
+        root.append(self.__get_next_token())  # }
         if self.__check_next_value() == 'else':
-            root.append(self.__get_next_token())
-            root.append(self.__get_next_token())
+            root.append(self.__get_next_token())  # else
+            root.append(self.__get_next_token())  # {
             root.append(self.compile_statements())
-            root.append(self.__get_next_token())
+            root.append(self.__get_next_token())  # }
         return root
 
     def compile_expression(self):
         root = ET.Element('expression')
-        root.append(self.compile_term())
+        root.append(self.compile_term())  # (
         while self.__check_next_value() in OPERATORS:
             root.append(self.__get_next_token())  # op
             root.append(self.compile_term())
@@ -207,7 +207,7 @@ class CompilationEngine:
 
     def compile_term(self):
         root = ET.Element('term')
-        if self.__check_next_type() in CONSTANT_TYPES or  \
+        if self.__check_next_type() in CONSTANT_TYPES or \
                 self.__check_next_value() in CONSTANTS:
             root.append(self.__get_next_token())
         elif self.__check_next_type() == 'identifier':
@@ -239,7 +239,6 @@ class CompilationEngine:
     def compile_expression_list(self):
         root = ET.Element('expressionList')
         if self.__check_next_value() != ')':
-            root.append(self.__get_next_token())
             root.append(self.compile_expression())
             while self.__check_next_value() == ',':
                 root.append(self.__get_next_token())

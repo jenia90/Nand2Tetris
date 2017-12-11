@@ -44,12 +44,18 @@ class JackTokenizer:
     def tokenize(self):
 
         def get_kind(token):
-            if re.match(self.keyword_re, token): return 'keyword'
-            elif re.match(self.symbol_re, token): return 'symbol'
-            elif re.match(self.int_re, token): return 'integerConstant'
-            elif re.match(self.string_re, token): return 'stringConstant'
-            elif re.match(self.id_re, token): return 'identifier'
-            else: return None
+            if re.match(self.keyword_re, token):
+                return 'keyword'
+            elif re.match(self.symbol_re, token):
+                return 'symbol'
+            elif re.match(self.int_re, token):
+                return 'integerConstant'
+            elif re.match(self.string_re, token):
+                return 'stringConstant'
+            elif re.match(self.id_re, token):
+                return 'identifier'
+            else:
+                return None
 
         split_re = re.compile('|'.join([self.keyword_re, self.symbol_re, self.int_re, self.string_re, self.id_re]))
         return [Token(token, get_kind(token)) for token in
@@ -59,9 +65,11 @@ class JackTokenizer:
         return self._current_index < len(self._tokens)
 
     def advance(self):
-        self._current_index += 1
-        self._current_token = self._tokens[self._current_index]
-        return self._current_token
+        if self.has_more_tokens():
+            self._current_index += 1
+            self._current_token = self._tokens[self._current_index]
+            return self._current_token
+        return None
 
     def double_next(self):
         return self._tokens[self._current_index + 2]
