@@ -8,13 +8,12 @@ ADD_OPER = '+'
 WRITE_ACCESS = 'w'
 OUTFILE_EXT = '.asm'
 
-from os import sep
-
+from os import sep, path
+from Parser import POP_COMM, PUSH_COMM
 from Parser import ADD_COMM, SUB_COMM, NEG_COMM, EQ_COMM, GT_COMM, LT_COMM, \
     AND_COMM, OR_COMM, NOT_COMM
 from Parser import CALL_COMM, FUNCTION_COMM, RETURN_COMM, LABEL_COMM, \
     GOTO_COMM, IF_COMM
-from Parser import POP_COMM, PUSH_COMM
 
 
 class CodeWriter:
@@ -48,10 +47,10 @@ class CodeWriter:
         """
         Writes the bootstrap code to the asm file
         """
-        self._outfile.write('\n'.join(['@256',
-                                       'D=A',
-                                       '@SP',
-                                       self.writeCall('Sys.init', 0)]))
+        self._outfile.write('@256\n'
+                            'D=A\n'
+                            '@SP\n'
+                            'M=D\n' + self.writeCall('Sys.init', 0))
 
     def setFileName(self, filename):
         """
@@ -70,6 +69,7 @@ class CodeWriter:
                           ''])
 
     def binaryOper(self, oper):
+
         return '\n'.join(['@SP',
                           'M=M-1',
                           'A=M',
@@ -84,8 +84,7 @@ class CodeWriter:
 
     def compareOper(self, oper):
         self._count += 1
-        varString = FNAME_SEP + self._currFileName + FNAME_SEP + str(
-            self._count)
+        var = FNAME_SEP + self._currFileName + FNAME_SEP + str(self._count)
 
         return '\n'.join(['@SP',
                           'M=M-1',
@@ -95,16 +94,16 @@ class CodeWriter:
                           'M=M-1',
                           'A=M',
                           'D=M-D',
-                          '@cor' + varString,
+                          '@correct' + var,
                           'D;J' + oper.upper(),
                           'D=0',
-                          '@after' + varString,
+                          '@after' + var,
                           '0;JMP',
-                          '(cor' + varString + ')',
+                          '(correct' + var + ')',
                           'D=-1',
-                          '@after' + varString,
+                          '@after' + var,
                           '0;JMP',
-                          '(after' + varString + ')',
+                          '(after' + var + ')',
                           '@SP',
                           'A=M',
                           'M=D',
@@ -140,7 +139,8 @@ class CodeWriter:
         return '(' + str(label) + ')\n'
 
     def writeGoto(self, label):
-        return '@' + label + '\n' + '0;JMP\n'
+        return '@' + label + '\n' \
+                             '0;JMP\n'
 
     def writeIf(self, label):
         return '\n'.join(['@SP',
@@ -171,15 +171,15 @@ class CodeWriter:
         self._outfile.write(cmd_str)
 
     def backupPointer(self, pointer):
-        return '@' + pointer + '\n' \
-                               'D=M\n' + \
-               self.pushStackOper('D')
+        return '\n'.join(['@' + pointer,
+                          'D=M',
+                          self.pushStackOper('D')])
 
     def restorePointer(self, pointer):
         return '\n'.join(['@R14',
                           'M=M-1',
-                          'A=M\n',
-                          'D=M\n',
+                          'A=M',
+                          'D=M',
                           '@' + pointer,
                           'M=D',
                           ''])
@@ -197,8 +197,8 @@ class CodeWriter:
 
         self._funcCallCounts[name] += 1
         count = self._funcCallCounts[name]
-        ret_name = name + '$ret.' + str(count)
 
+        ret_name = name + '$ret.' + str(count)
         cmd_str = '\n'.join(['@' + ret_name,
                              'D=A',
                              self.pushStackOper('D')])
@@ -234,7 +234,7 @@ class CodeWriter:
                              'D=M',
                              '@R15',
                              'M=D',
-                             self.popFromStack('argument', '0') + \
+                             self.popFromStack('argument', '0'),
                              '@ARG',
                              'D=M',
                              '@SP',
@@ -316,8 +316,8 @@ class CodeWriter:
         """
         idx_str = self._indexes.get(int(index), index)
         cmd_str = ''
-        static_var = self._currFileName.split(FNAME_SEP)[-2].split(sep)[-1] + \
-                     FNAME_SEP + idx_str
+        static_var = self._currFileName.split(FNAME_SEP)[-2]. \
+                         split(sep)[-1] + FNAME_SEP + idx_str
 
         if command == PUSH_COMM:
             if segment == 'temp' or segment == 'pointer':
@@ -342,18 +342,19 @@ class CodeWriter:
                                      self.pushStackOper('D')])
 
             elif segment == 'static':
-                cmd_str = '\n'.join([static_var,
+                cmd_str = '\n'.join(['@' + static_var,
                                      'D=M',
                                      self.pushStackOper('D')])
 
         elif command == POP_COMM:
             if segment == 'static':
                 cmd_str = '\n'.join(['@SP',
-                                     'M=M-1',
-                                     'A=M',
+                                     'A=M-1',
                                      'D=M',
-                                     static_var,
+                                     '@' + static_var,
                                      'M=D',
+                                     '@SP',
+                                     'M=M-1',
                                      ''])
             else:
                 cmd_str = self.popFromStack(segment, index)
