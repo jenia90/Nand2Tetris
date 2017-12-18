@@ -1,4 +1,5 @@
-import JackTokenizer as JT
+from old import JackTokenizer as JT
+
 import SymbolTable as ST
 
 TOKEN_IDX = 0

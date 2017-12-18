@@ -1,99 +1,93 @@
 import re
 
-SINGLE_COMMENT = '//'
+from Token import Token
 
-IDENTIFIER = "identifier"
-STRING_CONSTANT = "stringConstant"
-INTEGER_CONSTANT = "integerConstant"
-SYMBOL = "symbol"
-KEYWORD = "keyword"
-
-KWD_LIST = ['class', 'constructor', 'function', 'method', 'field', 'static',
+KEYWORDS = ['class', 'constructor', 'function', 'method', 'field', 'static',
             'var', 'int', 'char', 'boolean', 'void', 'true', 'false',
             'null', 'this', 'let', 'do', 'if', 'else', 'while', 'return']
+SYMBOLS = ['{', '}', '(', ')', '[', ']', '.', ',', ';', '+', '-', '*',
+           '/', '&', '|', '<', '>', '=', '~']
+OPERATORS = ['+', '-', '*', '/', '|', '=', '&lt;', '&gt;', '&amp;']
+UNARY_OPERATORS = ['-', '~']
+CONSTANTS = ['true', 'false', 'null', 'this']
+CLASS_VARIABLES = ['static', 'field']
+VARIABLES = ['int', 'char', 'boolean']
+SUBROUTINE = ['constructor', 'function', 'method']
+CONSTANT_TYPES = ['integerConstant', 'stringConstant', 'keyword']
 
-SYMBOL_LIST = ['{', '}', '(', ')', '[', ']', '.', ',', ';', '+', '-', '*',
-               '/', '&', '|', '<', '>', '=', '~']
-SYMBOL_CONVERTER = {'<': '&lt;', '>': '&gt;', '"': '&quot;', '&': '&amp;'}
-
-OP_LIST = ['+', '-', '*', '/', '|', '=', '&lt;', '&gt;', '&amp;']
-UOP_LIST = ['-', '~']
-KWD_CONSTS = ['true', 'false', 'null', 'this']
-CLASS_VARS = ['static', 'field']
-VAR_TYPES = ['int', 'char', 'boolean']
-SUBROUTINE_TYPES = ['constructor', 'function', 'method']
-KEYWORD_CONSTS = ['true', 'false', 'null', 'this']
-
-COMMENT_REGEX = r'("[^\n]*"(?!\\))|(//[^\n]*$|/(?!\\)\*[\s\S]*?\*(?!\\)/)'
-KEYWORD_REGEX = '(?!\\w)|'.join(KWD_LIST) + '(?!\\w)'
-SYMBOL_REGEX = '[' + re.escape('|'.join(SYMBOL_LIST)) + ']'
-INT_REGEX = '\\d+'
-STR_REGEX = '\"[^\"\\n]*\"'
-ID_REGEX = '[\\w]+'
 
 class JackTokenizer:
     def __init__(self, file):
+        self.keyword_re = '(?!\\w)|'.join(KEYWORDS) + '(?!\\w)'
+        self.symbol_re = '[' + re.escape('|'.join(SYMBOLS)) + ']'
+        self.int_re = '\\d+'
+        self.string_re = '\"[^\"\\n]*\"'
+        self.id_re = '[\\w]+'
+
+        self._lines = self.cleanup(file.read())
+        self._tokens = self.tokenize()
+        self._current_token = ''
+        self._current_index = -1
+
+    def cleanup(self, text):
         """
-        Opens the input file/stream and gets ready
-        to tokenize it
+        Removes comments and empty lines
+        :param text:
+        :return:
         """
-        self._file = file
-        self._lines = self.uncomment(self._file.read())
-        self._splitter = re.compile(KEYWORD_REGEX + '|' + SYMBOL_REGEX + '|' +
-                                    INT_REGEX + '|' + STR_REGEX + '|' + ID_REGEX)
-        self._tokens = [self.procToken(token.strip()) for token in
-                        self._splitter.findall(self._lines)]
-        self._currToken = ""
 
-    def uncomment(self, s):
-        com_reg = re.compile(COMMENT_REGEX, re.MULTILINE)
-        s = re.sub(com_reg, self.repl, s)
-        return s
+        def replace(m):
+            if m.group(1):
+                return m.group(1)
+            if m.group(2) is not None:
+                return ''
 
-    def repl(self, m):
-        if m.group(1):
-            return m.group(1)
-        if m.group(2) is not None:
-            return ''
+        comments = r'("[^\n]*"(?!\\))|(//[^\n]*|\/(?!\\)\*[\s\S]*?\*(?!\\)/)'
+        com_reg = re.compile(comments, re.MULTILINE)
+        text = re.sub(com_reg, replace, text)
+        return text
 
-    def procToken(self, token):
-        if re.match(KEYWORD_REGEX, token) is not None:
-            return KEYWORD, token
-        elif re.match(SYMBOL_REGEX, token) is not None:
-            return SYMBOL, self.replace(token)
-        elif re.match(INT_REGEX, token) is not None:
-            return INTEGER_CONSTANT, token
-        elif re.match(STR_REGEX, token) is not None:
-            return STRING_CONSTANT, token[1:-1]
-        else:
-            return IDENTIFIER, token
+    def tokenize(self):
+        """
+        Parse the input file and split it into separate tokens
+        :return:
+        """
 
-    def replace(self, token):
-        if token not in SYMBOL_CONVERTER:
-            return token
-        return SYMBOL_CONVERTER[token]
+        def get_kind(token):
+            if re.match(self.keyword_re, token):
+                return 'keyword'
+            elif re.match(self.symbol_re, token):
+                return 'symbol'
+            elif re.match(self.int_re, token):
+                return 'integerConstant'
+            elif re.match(self.string_re, token):
+                return 'stringConstant'
+            elif re.match(self.id_re, token):
+                return 'identifier'
+            else:
+                return None
 
-    def hasMoreTokens(self):
-        return self._tokens != []
+        split_re = re.compile('|'.join([self.keyword_re,
+                                        self.symbol_re,
+                                        self.int_re,
+                                        self.string_re,
+                                        self.id_re]))
+
+        return [Token(token, get_kind(token)) for token in
+                split_re.findall(self._lines)]
+
+    def has_more_tokens(self):
+        return self._current_index < len(self._tokens)
 
     def advance(self):
-        self._currToken = self._tokens.pop(0)
-        return self._currToken
+        if self.has_more_tokens():
+            self._current_index += 1
+            self._current_token = self._tokens[self._current_index]
+            return self._current_token
+        return None
 
-    def peek(self):
-        if self.hasMoreTokens():
-            return self._tokens[0]
-        else:
-            return ("ERROR", 0)
+    def double_next(self):
+        return self._tokens[self._current_index + 2]
 
-    def getToken(self):
-        """
-        returns the type of the current token
-        """
-        return self._currToken[0]
-
-    def getValue(self):
-        """
-        returns the current value
-        """
-        return self._currToken[1]
+    def next(self):
+        return self._tokens[self._current_index + 1]

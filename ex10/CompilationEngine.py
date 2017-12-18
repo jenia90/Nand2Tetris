@@ -1,309 +1,263 @@
-import JackTokenizer as JT
+import xml.etree.cElementTree as ET
 
+from JackTokenizer import JackTokenizer, OPERATORS, \
+    UNARY_OPERATORS, CLASS_VARIABLES, \
+    SUBROUTINE, CONSTANTS, CONSTANT_TYPES
 
-TOKEN_IDX = 0
-VALUE_IDX = 1
-INDENT_LEN = 2
-
-IDENTIFIER = "identifier"
-TERM = 'term'
-EXPRESSION = 'expression'
-IF_STATEMENT = 'ifStatement'
-STATEMENTS = 'statements'
-VAR_DEC = 'varDec'
-VAR = "var"
-SUBROUTINE_BODY = 'subroutineBody'
-SYMBOL = "symbol"
 PARAMETER_LIST = 'parameterList'
 SUBROUTINE_DEC = 'subroutineDec'
 CLASS_VAR_DEC = 'classVarDec'
-STATIC = "static"
-CLASS = 'class'
-ELSE = "else"
-RET = "return"
-WHILE = "while"
-IF = "if"
-LET = "let"
-DO = "do"
+
 RETURN_STATEMENT = 'returnStatement'
 WHILE_STATEMENT = 'whileStatement'
 LET_STATEMENT = 'letStatement'
 EXPRESSION_LIST = 'expressionList'
 DO_STATEMENT = 'doStatement'
 
+STATEMENTS = ['let', 'do', 'while', 'return', 'if']
 
 class CompilationEngine:
     def __init__(self, in_f, out_f):
-        self.tokenizer = JT.JackTokenizer(in_f)
-        self.elementStack = []
-        self._outFile = out_f
-        self._indent = ""
+        self._in_f, self._out_f = in_f, out_f
+        self._tokenizer = JackTokenizer(self._in_f)
+        self.create_tree()
 
-    def _addIndent(self):
-        self._indent += " " * INDENT_LEN
+    def __get_next_token(self):
+        return ET.fromstring(str(self._tokenizer.advance()))
 
-    def _removeIndent(self):
-        self._indent = self._indent[:-INDENT_LEN]
+    def __check_next_value(self):
+        return self._tokenizer.next().getValue()
 
-    def _writeNonTerminalStart(self, element):
-        self._outFile.write(self._indent + "<" + element + ">\n")
-        self.elementStack.append(element)
-        self._addIndent()
+    def __check_next_type(self):
+        return self._tokenizer.next().getKind()
 
-    def _writeNonTerminalEnd(self):
-        self._removeIndent()
-        element = self.elementStack.pop()
-        self._outFile.write(self._indent + "</" + element + ">\n")
+    def __check_double_next_value(self):
+        return self._tokenizer.double_next().getValue()
 
-    def _writeTerminal(self, token, value):
-        self._outFile.write(self._indent + "<" + token + "> " +
-                            value + " </" + token + ">\n")
+    def create_tree(self):
+        root = self.compile_class()
+        self.indent(root)
+        tree = ET.ElementTree(root)
+        tree.write(self._out_f, encoding='unicode', short_empty_elements=False)
 
-    def _writeClassVarDec(self):
-        self.advance()
-        self.advance()
-        self.advance()
-        while self._nextValueIs(","):
-            self.advance()
-            self.advance()
-        self.advance()
+    def compile_class(self):
+        root = ET.Element('class')
+        root.append(self.__get_next_token())
+        root.append(self.__get_next_token())
+        root.append(self.__get_next_token())
 
-    def _writeParam(self):
-        self.advance()
-        self.advance()
-        if self._nextValueIs(","):
-            self.advance()
+        while self.__check_next_value() in CLASS_VARIABLES:
+            root.append(self.compile_class_var_dec())
+        while self.__check_next_value() in SUBROUTINE:
+            root.append(self.compile_subroutine())
 
-    def _isParam(self):
-        return not self._nextTokenIs(SYMBOL)
+        root.append(self.__get_next_token())
+        return root
 
-    def _isClassVarDec(self):
-        return self._nextValueIn(JT.CLASS_VARS)
-
-    def _isSubroutine(self):
-        return self._nextValueIn(JT.SUBROUTINE_TYPES)
-
-    def _isStatement(self):
-        return self._nextValueIs(DO) or \
-               self._nextValueIs(LET) or \
-               self._nextValueIs(IF) or \
-               self._nextValueIs(WHILE) or \
-               self._nextValueIs(RET)
-
-    def _isExpression(self):
-        return self._isTerm()
-
-    def _isTerm(self):
-        return self._nextTokenIs(JT.INTEGER_CONSTANT) or \
-               self._nextTokenIs(JT.STRING_CONSTANT) or \
-               self._nextTokenIs(JT.IDENTIFIER) or \
-               self._nextValueIn(JT.UOP_LIST) or \
-               self._nextValueIn(JT.KWD_CONSTS) or \
-               self._nextValueIs('(')
-
-    def _isVarDec(self):
-        return self._nextValueIs(VAR)
-
-    def advance(self):
-        token, value = self.tokenizer.advance()
-        self._writeTerminal(token, value)
-
-    def _nextValueIn(self, elementList):
-        return self.tokenizer.peek()[VALUE_IDX] in elementList
-
-    def _nextValueIs(self, value):
-        return self.tokenizer.peek()[VALUE_IDX] == value
-
-    def _nextTokenIs(self, token):
-        return self.tokenizer.peek()[TOKEN_IDX] == token
-
-    def CompileClass(self):
-        self._writeNonTerminalStart(CLASS)
-        self.advance()
-        self.advance()
-        self.advance()
-        if self._isClassVarDec():
-            self.CompileClassVarDec()
-        while self._isSubroutine():
-            self.CompileSubroutine()
-        self.advance()
-        self._writeNonTerminalEnd()
-        self._outFile.close()
-
-    def CompileClassVarDec(self):
-        while self._isClassVarDec():
-            self._writeNonTerminalStart(CLASS_VAR_DEC)
-            self._writeClassVarDec()
-            self._writeNonTerminalEnd()
-
-    def CompileSubroutine(self):
+    def indent(self, elem, level=0):
         """
-        compiles a complete method, function,
-        or constructor.
+        Prettiefies the output tree structure of the xml
+        :param elem: current processed subtree root element
+        :param level: recursion and indentation level
         """
-        self._writeNonTerminalStart(SUBROUTINE_DEC)
-        self.advance()
-        self.advance()
-        self.advance()
-        self.advance()
-        self.CompileParameterList()
-        self.advance()
-        self.CompileSubroutineBody()
-        self._writeNonTerminalEnd()
+        i = "\n" + level * "  "
+        if len(elem):
+            if not elem.text or not elem.text.strip():
+                elem.text = i + "  "
+            if not elem.tail or not elem.tail.strip():
+                elem.tail = i
+            for elem in elem:
+                self.indent(elem, level + 1)
+            if not elem.tail or not elem.tail.strip():
+                elem.tail = i
+        else:
+            if level and (not elem.tail or not elem.tail.strip()):
+                elem.tail = i
 
-    def CompileParameterList(self):
-        self._writeNonTerminalStart(PARAMETER_LIST)
-        while self._isParam():
-            self._writeParam()
-        self._writeNonTerminalEnd()
+    def compile_class_var_dec(self):
+        root = ET.Element(CLASS_VAR_DEC)
+        root.append(self.__get_next_token())
+        root.append(self.__get_next_token())
+        root.append(self.__get_next_token())
+        while self.__check_next_value() == ',':
+            root.append(self.__get_next_token())
+            root.append(self.__get_next_token())
+        root.append(self.__get_next_token())
+        return root
 
-    def CompileSubroutineBody(self):
-        self._writeNonTerminalStart(SUBROUTINE_BODY)
-        self.advance()
+    def compile_subroutine(self):
+        root = ET.Element(SUBROUTINE_DEC)
+        root.append(self.__get_next_token())
+        root.append(self.__get_next_token())
+        root.append(self.__get_next_token())
+        root.append(self.__get_next_token())
+        root.append(self.compile_param_list())
+        root.append(self.__get_next_token())
+        root.append(self.compile_subroutine_body())
 
-        while self._isVarDec():
-            self.CompileVarDec()
+        return root
 
-        self.CompileStatements()
-        self.advance()
-        self._writeNonTerminalEnd()
+    def compile_param_list(self):
+        root = ET.Element(PARAMETER_LIST)
+        if self.__check_next_value() != ')':
+            while self.__check_next_type() != 'symbol':
+                root.append(self.__get_next_token())
+                root.append(self.__get_next_token())
+                if self.__check_next_value() == ',':
+                    root.append(self.__get_next_token())
+        else:
+            root.text = '\n'
 
-    def CompileVarDec(self):
-        self._writeNonTerminalStart(VAR_DEC)
-        self.advance()
-        self.advance()
-        self.advance()
-        while self._nextValueIs(","):
-            self.advance()
-            self.advance()
-        self.advance()
-        self._writeNonTerminalEnd()
+        return root
 
-    def CompileStatements(self):
-        self._writeNonTerminalStart(STATEMENTS)
-        while self._isStatement():
-            if self._nextValueIs(DO):
-                self.CompileDo()
-            elif self._nextValueIs(LET):
-                self.CompileLet()
-            elif self._nextValueIs(IF):
-                self.CompileIf()
-            elif self._nextValueIs(WHILE):
-                self.CompileWhile()
-            elif self._nextValueIs(RET):
-                self.CompileReturn()
-        self._writeNonTerminalEnd()
+    def compile_subroutine_body(self):
+        root = ET.Element('subroutineBody')
+        root.append(self.__get_next_token())
+        while self.__check_next_value() == 'var':
+            root.append(self.compile_var_dec())
+        root.append(self.compile_statements())
+        root.append(self.__get_next_token())
+        return root
 
-    def CompileDo(self):
-        self._writeNonTerminalStart(DO_STATEMENT)
-        self.advance()
-        self.CompileSubroutineCall()
-        self.advance()
-        self._writeNonTerminalEnd()
+    def compile_var_dec(self):
+        root = ET.Element('varDec')
+        root.append(self.__get_next_token())  # var
+        root.append(self.__get_next_token())  # type
+        root.append(self.__get_next_token())  # name
+        while self.__check_next_value() == ',':
+            root.append(self.__get_next_token())
+            root.append(self.__get_next_token())
+        root.append(self.__get_next_token())
+        return root
 
-    def CompileSubroutineCall(self):
-        self.advance()
-        if self._nextValueIs("."):
-            self.advance()
-            self.advance()
-        self.advance()
-        self.CompileExpressionList()
-        self.advance()
+    def compile_statements(self):
+        root = ET.Element('statements')
+        while self.__check_next_value() in STATEMENTS:
+            if self.__check_next_value() == 'let':
+                root.append(self.compile_let())
+            elif self.__check_next_value() == 'do':
+                root.append(self.compile_do())
+            elif self.__check_next_value() == 'if':
+                root.append(self.compile_if())
+            elif self.__check_next_value() == 'while':
+                root.append(self.compile_while())
+            elif self.__check_next_value() == 'return':
+                root.append(self.compile_return())
+        return root
 
-    def CompileExpressionList(self):
-        self._writeNonTerminalStart(EXPRESSION_LIST)
-        if self._isExpression():
-            self.CompileExpression()
-        while self._nextValueIs(","):
-            self.advance()
-            self.CompileExpression()
-        self._writeNonTerminalEnd()
+    def compile_do(self):
+        root = ET.Element(DO_STATEMENT)
+        root.append(self.__get_next_token())  # do
+        root.extend(self.compile_subroutine_call())
+        root.append(self.__get_next_token())
+        return root
 
-    def CompileLet(self):
-        self._writeNonTerminalStart(LET_STATEMENT)
-        self.advance()
-        self.advance()
+    def compile_let(self):
+        root = ET.Element(LET_STATEMENT)
+        root.append(self.__get_next_token())  # let
+        root.append(self.__get_next_token())  # varname
+        if self.__check_next_value() == '[':
+            root.append(self.__get_next_token())  # [
+            root.append(self.compile_expression())
+            root.append(self.__get_next_token())  # ]
+        root.append(self.__get_next_token())  # =
+        root.append(self.compile_expression())
+        root.append(self.__get_next_token())
+        return root
 
-        if self._nextValueIs("["):
-            self.advance()
-            self.CompileExpression()
-            self.advance()
+    def compile_while(self):
+        root = ET.Element(WHILE_STATEMENT)
+        root.append(self.__get_next_token())  # while
+        root.append(self.__get_next_token())  # (
+        root.append(self.compile_expression())
+        root.append(self.__get_next_token())  # )
+        root.append(self.__get_next_token())  # {
+        root.append(self.compile_statements())
+        root.append(self.__get_next_token())  # }
+        return root
 
-        self.advance()
-        self.CompileExpression()
-        self.advance()
-        self._writeNonTerminalEnd()
+    def compile_return(self):
+        root = ET.Element(RETURN_STATEMENT)
+        root.append(self.__get_next_token())
+        if self.__check_next_value() != ';':
+            root.append(self.compile_expression())
+        root.append(self.__get_next_token())
+        return root
 
-    def CompileWhile(self):
-        self._writeNonTerminalStart(WHILE_STATEMENT)
-        self.advance()
-        self.advance()
-        self.CompileExpression()
-        self.advance()
-        self.advance()
-        self.CompileStatements()
-        self.advance()
-        self._writeNonTerminalEnd()
+    def compile_if(self):
+        root = ET.Element('ifStatement')
+        root.append(self.__get_next_token())  # if
+        root.append(self.__get_next_token())  # (
+        root.append(self.compile_expression())
+        root.append(self.__get_next_token())  # )
+        root.append(self.__get_next_token())  # {
+        root.append(self.compile_statements())
+        root.append(self.__get_next_token())  # }
+        if self.__check_next_value() == 'else':
+            root.append(self.__get_next_token())  # else
+            root.append(self.__get_next_token())  # {
+            root.append(self.compile_statements())
+            root.append(self.__get_next_token())  # }
+        return root
 
-    def CompileReturn(self):
-        self._writeNonTerminalStart(RETURN_STATEMENT)
-        self.advance()
-        while self._isExpression():
-            self.CompileExpression()
-        self.advance()
-        self._writeNonTerminalEnd()
+    def compile_expression(self):
+        root = ET.Element('expression')
+        root.append(self.compile_term())  # (
+        while self.__check_next_value() in OPERATORS:
+            root.append(self.__get_next_token())  # op
+            root.append(self.compile_term())
 
-    def CompileIf(self):
-        self._writeNonTerminalStart(IF_STATEMENT)
-        self.advance()
-        self.advance()
-        self.CompileExpression()
-        self.advance()
-        self.advance()
-        self.CompileStatements()
-        self.advance()
-        if self._nextValueIs(ELSE):
-            self.advance()
-            self.advance()
-            self.CompileStatements()
-            self.advance()
-        self._writeNonTerminalEnd()
+        return root
 
-    def CompileExpression(self):
-        self._writeNonTerminalStart(EXPRESSION)
-        self.CompileTerm()
-        while self._nextValueIn(JT.OP_LIST):
-            self.advance()
-            self.CompileTerm()
-        self._writeNonTerminalEnd()
+    def compile_term(self):
+        root = ET.Element('term')
+        if self.__check_next_type() in CONSTANT_TYPES or \
+                self.__check_next_value() in CONSTANTS:
+            root.append(self.__get_next_token())
+        elif self.__check_next_type() == 'identifier':
+            root.append(self.__get_next_token())
+            if self.__check_next_value() == '[':
+                root.append(self.__get_next_token())  # [
+                root.append(self.compile_expression())
+                root.append(self.__get_next_token())  # ]
+            if self.__check_next_value() == '(':
+                root.append(self.__get_next_token())  # (
+                root.append(self.compile_expression_list())
+                root.append(self.__get_next_token())  # )
+            if self.__check_next_value() == '.':
+                root.append(self.__get_next_token())  # .
+                root.append(self.__get_next_token())  # subname
+                root.append(self.__get_next_token())  # (
+                root.append(self.compile_expression_list())
+                root.append(self.__get_next_token())  # )
+        elif self.__check_next_value() in UNARY_OPERATORS:
+            root.append(self.__get_next_token())
+            root.append(self.compile_term())
+        elif self.__check_next_value() == '(':
+            root.append(self.__get_next_token())  # (
+            root.append(self.compile_expression())
+            root.append(self.__get_next_token())  # )
 
-    def CompileTerm(self):
-        self._writeNonTerminalStart(TERM)
-        if self._nextTokenIs(JT.INTEGER_CONSTANT) or \
-                self._nextTokenIs(JT.STRING_CONSTANT) or\
-                self._nextValueIn(JT.KWD_CONSTS):
-            self.advance()
-        elif self._nextTokenIs(IDENTIFIER):
-            self.advance()
-            if self._nextValueIs("["):
-                self.advance()
-                self.CompileExpression()
-                self.advance()
-            if self._nextValueIs("("):
-                self.advance()
-                self.CompileExpressionList()
-                self.advance()
-            if self._nextValueIs("."):
-                self.advance()
-                self.advance()
-                self.advance()
-                self.CompileExpressionList()
-                self.advance()
-        elif self._nextValueIn(JT.UOP_LIST):
-            self.advance()
-            self.CompileTerm()
-        elif self._nextValueIs("("):
-            self.advance()
-            self.CompileExpression()
-            self.advance()
-        self._writeNonTerminalEnd()
+        return root
+
+    def compile_expression_list(self):
+        root = ET.Element('expressionList')
+        if self.__check_next_value() != ')':
+            root.append(self.compile_expression())
+            while self.__check_next_value() == ',':
+                root.append(self.__get_next_token())
+                root.append(self.compile_expression())
+        else:
+            root.text = '\n'
+        return root
+
+    def compile_subroutine_call(self):
+        root = ET.Element('subroutineCall')
+        root.append(self.__get_next_token())
+        while self.__check_next_value() == '.':
+            root.append(self.__get_next_token())
+            root.append(self.__get_next_token())
+        root.append(self.__get_next_token())
+        root.append(self.compile_expression_list())
+        root.append(self.__get_next_token())
+        return root
