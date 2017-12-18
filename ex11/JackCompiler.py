@@ -1,5 +1,8 @@
-import sys, os
-import CompilationEngine as CE
+import os
+import sys
+
+from old import CompilationEngine as CE
+
 import VMWriter as VMW
 
 SOURCE_EXT = '.jack'

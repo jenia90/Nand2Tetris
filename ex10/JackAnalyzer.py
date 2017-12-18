@@ -1,8 +1,11 @@
-import sys, os
+import os
+import sys
+
 import CompilationEngine as CE
 
 SOURCE_EXT = '.jack'
 DEST_EXT = '.xml'
+
 
 def main(args):
     if args is None:
@@ -15,8 +18,7 @@ def main(args):
             if f.endswith(SOURCE_EXT):
                 in_f = open(args + f, 'r')
                 out_f = open(in_f.name.split(SOURCE_EXT)[0] + DEST_EXT, 'w')
-                comp_engine = CE.CompilationEngine(in_f, out_f)
-                comp_engine.CompileClass()
+                CE.CompilationEngine(in_f, out_f)
                 out_f.close()
                 in_f.close()
 
@@ -24,10 +26,10 @@ def main(args):
     elif os.path.isfile(args) and args.endswith(SOURCE_EXT):
         in_f = open(args, 'r')
         out_f = open(in_f.name.split(SOURCE_EXT)[0] + DEST_EXT, 'w')
-        comp_engine = CE.CompilationEngine(in_f, out_f)
-        comp_engine.CompileClass()
+        CE.CompilationEngine(in_f, out_f)
         out_f.close()
         in_f.close()
+
 
 if __name__ == '__main__':
     main(sys.argv[1])
