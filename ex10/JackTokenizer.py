@@ -44,7 +44,7 @@ class JackTokenizer:
 
         comments = r'("[^\n]*"(?!\\))|(//[^\n]*|\/(?!\\)\*[\s\S]*?\*(?!\\)/)'
         com_reg = re.compile(comments, re.MULTILINE)
-        text = re.sub(com_reg, replace, text)
+        text = re.sub(com_reg, replace, text).strip()
         return text
 
     def tokenize(self):
