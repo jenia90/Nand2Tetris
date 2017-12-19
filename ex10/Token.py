@@ -8,6 +8,8 @@ class Token:
     def __clean_value(self):
         if self._kind == "stringConstant":
             self._val = self._val[1:-1]
+            for s in self._symbol_conversion.keys():
+                str(self._val).replace(s, self._symbol_conversion[s])
 
     def getKind(self):
         return self._kind

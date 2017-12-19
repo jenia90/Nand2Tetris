@@ -29,6 +29,9 @@ class CompilationEngine:
     def __check_next_value(self):
         return self._tokenizer.next().getValue()
 
+    def __check_prev_value(self):
+        return self._tokenizer.prev().getValue()
+
     def __check_next_type(self):
         return self._tokenizer.next().getKind()
 
@@ -133,17 +136,21 @@ class CompilationEngine:
 
     def compile_statements(self):
         root = ET.Element('statements')
-        while self.__check_next_value() in STATEMENTS:
-            if self.__check_next_value() == 'let':
-                root.append(self.compile_let())
-            elif self.__check_next_value() == 'do':
-                root.append(self.compile_do())
-            elif self.__check_next_value() == 'if':
-                root.append(self.compile_if())
-            elif self.__check_next_value() == 'while':
-                root.append(self.compile_while())
-            elif self.__check_next_value() == 'return':
-                root.append(self.compile_return())
+        if self.__check_next_value() != '}':
+            while self.__check_next_value() in STATEMENTS:
+                if self.__check_next_value() == 'let':
+                    root.append(self.compile_let())
+                elif self.__check_next_value() == 'do':
+                    root.append(self.compile_do())
+                elif self.__check_next_value() == 'if':
+                    root.append(self.compile_if())
+                elif self.__check_next_value() == 'while':
+                    root.append(self.compile_while())
+                elif self.__check_next_value() == 'return':
+                    root.append(self.compile_return())
+
+        else:
+            root.text = '\n'
         return root
 
     def compile_do(self):

@@ -42,7 +42,7 @@ class JackTokenizer:
             if m.group(2) is not None:
                 return ''
 
-        comments = r'("[^\n]*"(?!\\))|(//[^\n]*|\/(?!\\)\*[\s\S]*?\*(?!\\)/)'
+        comments = r'("[^"]*")|(//[^\n]*|/\*[\s\S]*?\*/)'
         com_reg = re.compile(comments, re.MULTILINE)
         text = re.sub(com_reg, replace, text).strip()
         return text
@@ -91,3 +91,6 @@ class JackTokenizer:
 
     def next(self):
         return self._tokens[self._current_index + 1]
+
+    def prev(self):
+        return self._tokens[self._current_index - 1]
