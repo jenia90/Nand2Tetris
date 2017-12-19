@@ -1,2 +1,5 @@
 all:
-	chmod a+x JackAnalyzer
+	chmod +x JackAnalyzer
+
+tar:
+	tar cvf project10.tar *.py README Makefile JackAnalyzer

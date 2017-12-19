@@ -1,7 +1,7 @@
 import os
 import sys
 
-from old import CompilationEngine as CE
+import CompilationEngine as CE
 
 SOURCE_EXT = '.jack'
 DEST_EXT = '.xml'
