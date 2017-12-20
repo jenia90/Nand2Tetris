@@ -18,7 +18,8 @@ def main(args):
             if f.endswith(SOURCE_EXT):
                 in_f = open(args + f, 'r')
                 out_f = open(in_f.name.split(SOURCE_EXT)[0] + DEST_EXT, 'w')
-                CE.CompilationEngine(in_f, out_f)
+                c = CE.CompilationEngine(in_f, out_f)
+                c.compile_file()
                 out_f.close()
                 in_f.close()
 

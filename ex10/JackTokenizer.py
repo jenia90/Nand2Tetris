@@ -40,7 +40,7 @@ class JackTokenizer:
             if m.group(1):
                 return m.group(1)
             if m.group(2) is not None:
-                return ''
+                return ' '
 
         comments = r'("[^"]*")|(//[^\n]*|/\*[\s\S]*?\*/)'
         com_reg = re.compile(comments, re.MULTILINE)

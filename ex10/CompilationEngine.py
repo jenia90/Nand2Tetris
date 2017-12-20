@@ -1,8 +1,7 @@
 import xml.etree.ElementTree as ET
 
-from JackTokenizer import JackTokenizer, OPERATORS, \
-    UNARY_OPERATORS, CLASS_VARIABLES, \
-    SUBROUTINE, CONSTANTS, CONSTANT_TYPES
+from JackTokenizer import CLASS_VARIABLES, CONSTANTS, CONSTANT_TYPES, \
+    JackTokenizer, OPERATORS, SUBROUTINE, UNARY_OPERATORS
 
 PARAMETER_LIST = 'parameterList'
 SUBROUTINE_DEC = 'subroutineDec'
@@ -21,7 +20,6 @@ class CompilationEngine:
     def __init__(self, in_f, out_f):
         self._in_f, self._out_f = in_f, out_f
         self._tokenizer = JackTokenizer(self._in_f)
-        self.create_tree()
 
     def __get_next_token(self):
         return ET.fromstring(str(self._tokenizer.advance()))
@@ -38,11 +36,14 @@ class CompilationEngine:
     def __check_double_next_value(self):
         return self._tokenizer.double_next().getValue()
 
+    def compile_file(self):
+        tree = ET.ElementTree(self.create_tree())
+        tree.write(self._out_f, encoding='unicode', short_empty_elements=False)
+
     def create_tree(self):
         root = self.compile_class()
         self.indent(root)
-        tree = ET.ElementTree(root)
-        tree.write(self._out_f, encoding='unicode', short_empty_elements=False)
+        return root
 
     def compile_class(self):
         root = ET.Element('class')
@@ -90,7 +91,7 @@ class CompilationEngine:
         return root
 
     def compile_subroutine(self):
-        root = ET.Element(SUBROUTINE_DEC)
+        root = ET.Element('subroutineDec')
         root.append(self.__get_next_token())
         root.append(self.__get_next_token())
         root.append(self.__get_next_token())
