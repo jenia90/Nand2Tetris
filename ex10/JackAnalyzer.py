@@ -6,6 +6,13 @@ import CompilationEngine as CE
 SOURCE_EXT = '.jack'
 DEST_EXT = '.xml'
 
+def process_file(f):
+    in_f = open(f, 'r')
+    out_f = open(in_f.name.split(SOURCE_EXT)[0] + DEST_EXT, 'w')
+    c = CE.CompilationEngine(in_f, out_f)
+    c.compile_file()
+    out_f.close()
+    in_f.close()
 
 def main(args):
     if args is None:
@@ -16,20 +23,11 @@ def main(args):
             args += os.sep
         for f in os.listdir(args):
             if f.endswith(SOURCE_EXT):
-                in_f = open(args + f, 'r')
-                out_f = open(in_f.name.split(SOURCE_EXT)[0] + DEST_EXT, 'w')
-                c = CE.CompilationEngine(in_f, out_f)
-                c.compile_file()
-                out_f.close()
-                in_f.close()
+                process_file(args + f)
 
     # process single file
     elif os.path.isfile(args) and args.endswith(SOURCE_EXT):
-        in_f = open(args, 'r')
-        out_f = open(in_f.name.split(SOURCE_EXT)[0] + DEST_EXT, 'w')
-        CE.CompilationEngine(in_f, out_f)
-        out_f.close()
-        in_f.close()
+        process_file(args)
 
 
 if __name__ == '__main__':

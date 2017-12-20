@@ -1,7 +1,8 @@
 class Token:
     def __init__(self, value, kind):
         self._symbol_conversion = {'&': '&amp;',
-                                   '<': '&lt;', '>': '&gt;',
+                                   '<': '&lt;',
+                                   '>': '&gt;',
                                    '"': '&quot;'}
         self._kind = kind
         self._val = self._symbol_conversion.get(value, value)
