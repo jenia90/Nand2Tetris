@@ -1,9 +1,9 @@
 import os
 import sys
 
-from old import CompilationEngine as CE
-
 import VMWriter as VMW
+
+from old import CompilationEngine as CE
 
 SOURCE_EXT = '.jack'
 DEST_EXT = '.vm'
