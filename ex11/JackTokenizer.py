@@ -91,6 +91,3 @@ class JackTokenizer:
 
     def next(self):
         return self._tokens[self._current_index + 1]
-
-    def prev(self):
-        return self._tokens[self._current_index - 1]

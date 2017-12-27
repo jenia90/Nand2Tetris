@@ -5,8 +5,8 @@ class SymbolTable:
     def __init__(self):
         self.classSymbols = {}
         self.symbolCounter = {}
-        self.currentScopeSymbols = self.classSymbols
         self.subroutinesDict = {}
+        self.currentScopeSymbols = self.classSymbols
 
     def countUpdate(self, kind, command=0):
         """
