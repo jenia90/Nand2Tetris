@@ -7,7 +7,7 @@ KEYWORDS = ['class', 'constructor', 'function', 'method', 'field', 'static',
             'null', 'this', 'let', 'do', 'if', 'else', 'while', 'return']
 SYMBOLS = ['{', '}', '(', ')', '[', ']', '.', ',', ';', '+', '-', '*',
            '/', '&', '|', '<', '>', '=', '~']
-OPERATORS = ['+', '-', '*', '/', '|', '=', '&lt;', '&gt;', '&amp;']
+OPERATORS = ['+', '-', '*', '/', '|', '=', '<', '>', '&']
 UNARY_OPERATORS = ['-', '~']
 CONSTANTS = ['true', 'false', 'null', 'this']
 CLASS_VARIABLES = ['static', 'field']

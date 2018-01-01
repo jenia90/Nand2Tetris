@@ -25,16 +25,16 @@ class CompilationEngine:
         return ET.fromstring(str(self._tokenizer.advance()))
 
     def __check_next_value(self):
-        return self._tokenizer.next().getValue()
+        return self._tokenizer.next().get_value()
 
     def __check_prev_value(self):
-        return self._tokenizer.prev().getValue()
+        return self._tokenizer.prev().get_value()
 
     def __check_next_type(self):
         return self._tokenizer.next().getKind()
 
     def __check_double_next_value(self):
-        return self._tokenizer.double_next().getValue()
+        return self._tokenizer.double_next().get_value()
 
     def compile_file(self):
         tree = ET.ElementTree(self.create_tree())

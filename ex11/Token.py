@@ -8,10 +8,10 @@ class Token:
         if self._kind == "stringConstant":
             self._val = self._val[1:-1]
 
-    def getKind(self):
+    def get_kind(self):
         return self._kind
 
-    def getValue(self):
+    def get_value(self):
         return self._val
 
     def __repr__(self):
