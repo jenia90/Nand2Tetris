@@ -4,7 +4,7 @@ import sys
 import CompilationEngine as CE
 
 SOURCE_EXT = '.jack'
-DEST_EXT = '.xml'
+DEST_EXT = '.vm'
 
 
 def process_file(f):

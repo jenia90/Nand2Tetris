@@ -1,5 +1,6 @@
 from JackTokenizer import CLASS_VARIABLES, CONSTANTS, CONSTANT_TYPES, \
     JackTokenizer, OPERATORS, SUBROUTINE, UNARY_OPERATORS
+from SymbolTable import GET, INC, SymbolTable
 from VMWriter import VMWriter
 
 PARAMETER_LIST = 'parameterList'
@@ -17,12 +18,13 @@ STATEMENTS = ['let', 'do', 'while', 'return', 'if']
 
 class CompilationEngine:
     def __init__(self, in_f, out_f):
-        self._in_f, self._out_f = in_f, out_f
-        self._tokenizer = JackTokenizer(self._in_f)
+        self._tokenizer = JackTokenizer(in_f)
         self.vw = VMWriter(out_f)
+        self.st = SymbolTable()
+        self.class_name = ''
 
     def __get_next_token(self):
-        self._tokenizer.advance()
+        return self._tokenizer.advance()
 
     def __check_next_value(self):
         return self._tokenizer.next().getValue()
@@ -33,9 +35,35 @@ class CompilationEngine:
     def __check_double_next_value(self):
         return self._tokenizer.double_next().getValue()
 
+    def __push_var(self, name):
+        kind = self.st.get_kind(name)
+        index = self.st.get_index(name)
+
+        if kind == 'static':
+            self.vw.write_push('static', index)
+        elif kind == 'var':
+            self.vw.write_push('local', index)
+        elif kind == 'arg':
+            self.vw.write_push('argument', index)
+        else:
+            self.vw.write_push('this', index)
+
+    def __pop_var(self, name):
+        kind = self.st.get_kind(name)
+        index = self.st.get_index(name)
+
+        if kind == 'static':
+            self.vw.write_pop('static', index)
+        elif kind == 'var':
+            self.vw.write_pop('local', index)
+        elif kind == 'arg':
+            self.vw.write_pop('argument', index)
+        else:
+            self.vw.write_pop('this', index)
+
     def compile_class(self):
         self.__get_next_token()
-        self.__get_next_token()
+        self.class_name = str(self.__get_next_token())
         self.__get_next_token()
 
         while self.__check_next_value() in CLASS_VARIABLES:
@@ -46,45 +74,69 @@ class CompilationEngine:
         self.__get_next_token()
 
     def compile_class_var_dec(self):
-        self.__get_next_token()
-        self.__get_next_token()
-        self.__get_next_token()
+        var_kind = str(self.__get_next_token())
+        var_type = str(self.__get_next_token())
+        var_name = str(self.__get_next_token())
+        self.st.new_id(var_kind, var_type, var_name)
         while self.__check_next_value() == ',':
             self.__get_next_token()
-            self.__get_next_token()
+            var_name = str(self.__get_next_token())
+            self.st.new_id(var_kind, var_type, var_name)
         self.__get_next_token()
 
     def compile_subroutine(self):
+        sub_type = str(self.__get_next_token())
         self.__get_next_token()
+        sub_name = '.'.join([self.class_name,
+                             str(self.__get_next_token())])
+        self.st.new_sub(sub_name)
+        self.st.set_scope(sub_name)
         self.__get_next_token()
+        self.compile_param_list(sub_type)
         self.__get_next_token()
-        self.__get_next_token()
-        self.compile_param_list()
-        self.__get_next_token()
-        self.compile_subroutine_body()
+        self.compile_subroutine_body(sub_name, sub_type)
 
-    def compile_param_list(self):
+    def compile_param_list(self, type):
         if self.__check_next_value() != ')':
+            if type == 'method':
+                self.st.new_id('arg', 'self', 'this')
             while self.__check_next_type() != 'symbol':
-                self.__get_next_token()
-                self.__get_next_token()
+                p_type = str(self.__get_next_token())
+                p_name = str(self.__get_next_token())
+                self.st.new_id('arg', p_type, p_name)
                 if self.__check_next_value() == ',':
                     self.__get_next_token()
 
-    def compile_subroutine_body(self):
+    def compile_subroutine_body(self, name, type):
         self.__get_next_token()
         while self.__check_next_value() == 'var':
             self.compile_var_dec()
+        n_args = self.st.update_count('arg', GET)
+        self.vw.write_func(name, n_args)
+        self.load_pointer(type)
         self.compile_statements()
         self.__get_next_token()
+        self.st.set_scope('global')
+
+    def load_pointer(self, type):
+        if type == 'constructor':
+            n_args = self.st.var_count('field')
+            self.vw.write_push('constant', n_args)
+            self.vw.write_func_call('Memory.alloc', 1)
+            self.vw.write_pop('pointer', 0)
+        elif type == 'method':
+            self.vw.write_push('argument', 0)
+            self.vw.write_pop('pointer', 0)
 
     def compile_var_dec(self):
-        self.__get_next_token()  # var
-        self.__get_next_token()  # type
-        self.__get_next_token()  # name
+        var_kind = str(self.__get_next_token())
+        var_type = str(self.__get_next_token())
+        var_name = str(self.__get_next_token())
+        self.st.new_id(var_kind, var_type, var_name)
         while self.__check_next_value() == ',':
             self.__get_next_token()
-            self.__get_next_token()
+            var_name = str(self.__get_next_token())
+            self.st.new_id(var_kind, var_type, var_name)
         self.__get_next_token()
 
     def compile_statements(self):
@@ -104,32 +156,51 @@ class CompilationEngine:
     def compile_do(self):
         self.__get_next_token()  # do
         self.compile_subroutine_call()
+        self.vw.write_pop('temp', 0)
         self.__get_next_token()
 
     def compile_let(self):
         self.__get_next_token()  # let
-        self.__get_next_token()  # varname
+        is_array = False
+        var_name = str(self.__get_next_token())  # varname
         if self.__check_next_value() == '[':
-            self.__get_next_token()  # [
-            self.compile_expression()
-            self.__get_next_token()  # ]
+            is_array = True
+            self.compile_array(var_name)
         self.__get_next_token()  # =
         self.compile_expression()
         self.__get_next_token()
+        if is_array:
+            self.vw.write_pop('temp', 0)
+            self.vw.write_pop('pointer', 1)
+            self.vw.write_push('temp', 0)
+            self.vw.write_pop('that', 0)
+        else:
+            if self.st.is_defined(var_name):
+                self.__pop_var(var_name)
 
     def compile_while(self):
+        n_while = str(self.st.update_count('while', INC))
+        self.vw.write_label('WHILE_EXP' + n_while)
         self.__get_next_token()  # while
         self.__get_next_token()  # (
         self.compile_expression()
         self.__get_next_token()  # )
+
+        self.vw.write_arithmetic('not')
+        self.vw.write_if('WHILE_END' + n_while)
         self.__get_next_token()  # {
         self.compile_statements()
         self.__get_next_token()  # }
+        self.vw.write_goto('WHILE_EXP' + n_while)
+        self.vw.write_label('WHILE_END' + n_while)
 
     def compile_return(self):
         self.__get_next_token()
         if self.__check_next_value() != ';':
             self.compile_expression()
+        else:
+            self.vw.write_push('constant', 0)
+        self.vw.write_return()
         self.__get_next_token()
 
     def compile_if(self):
@@ -137,61 +208,152 @@ class CompilationEngine:
         self.__get_next_token()  # (
         self.compile_expression()
         self.__get_next_token()  # )
+        n_if = str(self.st.update_count('if', INC))
+        self.vw.write_if('IF_TRUE' + n_if)
+        self.vw.write_goto('IF_FALSE' + n_if)
+        self.vw.write_label('IF_TRUE' + n_if)
         self.__get_next_token()  # {
         self.compile_statements()
         self.__get_next_token()  # }
         if self.__check_next_value() == 'else':
             self.__get_next_token()  # else
+            self.vw.write_goto('IF_END' + n_if)
+            self.vw.write_label('IF_FALSE' + n_if)
             self.__get_next_token()  # {
             self.compile_statements()
             self.__get_next_token()  # }
+            self.vw.write_label('IF_END' + n_if)
+        else:
+            self.vw.write_label('IF_FALSE' + n_if)
 
     def compile_expression(self):
         self.compile_term()  # (
         while self.__check_next_value() in OPERATORS:
-            self.__get_next_token()  # op
+            _op = str(self.__get_next_token())  # op
             self.compile_term()
+            if _op == '+':
+                self.vw.write_arithmetic('add')
+            elif _op == '-':
+                self.vw.write_arithmetic('sub')
+            elif _op == '|':
+                self.vw.write_arithmetic('or')
+            elif _op == '&':
+                self.vw.write_arithmetic('and')
+            elif _op == '=':
+                self.vw.write_arithmetic('eq')
+            elif _op == '<':
+                self.vw.write_arithmetic('lt')
+            elif _op == '>':
+                self.vw.write_arithmetic('gt')
+            elif _op == '*':
+                self.vw.write_func_call('Math.multiply', 2)
+            elif _op == '/':
+                self.vw.write_func_call('Math.divide', 2)
 
     def compile_term(self):
-        if self.__check_next_type() in CONSTANT_TYPES or \
-                self.__check_next_value() in CONSTANTS:
-            self.__get_next_token()
+        is_array = False
+        _type = self.__check_next_type()
+        if _type in CONSTANT_TYPES:
+            if _type in CONSTANT_TYPES:
+                value = str(self.__get_next_token())
+            if _type == 'stringConstant':
+                self.vw.write_push('constant', len(value))
+                self.vw.write_func_call('String.new', 1)
+                for l in value:
+                    self.vw.write_push('constant', ord(l))
+                    self.vw.write_func_call('String.appendChar', 2)
+            elif _type == 'integerConstant':
+                self.vw.write_push('constant', value)
+        elif self.__check_next_value() in CONSTANTS:
+            value = str(self.__get_next_token())
+            if value == 'this':
+                self.vw.write_push('pointer', 0)
+            else:
+                self.vw.write_push('constant', 0)
+                if value == 'true':
+                    self.vw.write_arithmetic('not')
         elif self.__check_next_type() == 'identifier':
-            self.__get_next_token()
+            n_args = 0
+            var_name = str(self.__get_next_token())
             if self.__check_next_value() == '[':
-                self.__get_next_token()  # [
-                self.compile_expression()
-                self.__get_next_token()  # ]
+                is_array = True
+                self.compile_array(var_name)
             if self.__check_next_value() == '(':
+                n_args += 1
+                self.vw.write_push('pointer', 0)
                 self.__get_next_token()  # (
-                self.compile_expression_list()
+                n_args += self.compile_expression_list()
                 self.__get_next_token()  # )
-            if self.__check_next_value() == '.':
+                self.vw.write_func_call('.'.join([self.class_name, var_name]),
+                                        n_args)
+            elif self.__check_next_value() == '.':
                 self.__get_next_token()  # .
-                self.__get_next_token()  # subname
+                l = str(self.__get_next_token())  # subname
+                if self.st.is_defined(var_name):
+                    self.__push_var(var_name)
+                    var_name = self.st.get_type(var_name) + '.' + l
+                    n_args += 1
+                else:
+                    var_name = var_name + '.' + l
                 self.__get_next_token()  # (
-                self.compile_expression_list()
+                n_args += self.compile_expression_list()
                 self.__get_next_token()  # )
+                self.vw.write_func_call(var_name, n_args)
+            else:
+                if is_array:
+                    self.vw.write_pop('pointer', 1)
+                    self.vw.write_push('that', 0)
+                elif self.st.is_defined(var_name):
+                    self.__push_var(var_name)
         elif self.__check_next_value() in UNARY_OPERATORS:
-            self.__get_next_token()
+            _op = str(self.__get_next_token())
             self.compile_term()
+            if _op == '~':
+                self.vw.write_arithmetic('not')
+            elif _op == '-':
+                self.vw.write_arithmetic('neg')
         elif self.__check_next_value() == '(':
             self.__get_next_token()  # (
             self.compile_expression()
             self.__get_next_token()  # )
 
     def compile_expression_list(self):
+        arg_count = 0
         if self.__check_next_value() != ')':
             self.compile_expression()
+            arg_count += 1
             while self.__check_next_value() == ',':
                 self.__get_next_token()
                 self.compile_expression()
+                arg_count += 1
+        return arg_count
 
     def compile_subroutine_call(self):
-        self.__get_next_token()
-        while self.__check_next_value() == '.':
+        n_args = 0
+        instance_name = str(self.__get_next_token())
+        if self.__check_next_value() == '.':
             self.__get_next_token()
-            self.__get_next_token()
+            sub_name = str(self.__get_next_token())
+            if self.st.is_defined(instance_name):
+                self.vw.write_push(instance_name, sub_name)
+                full_name = '.'.join(
+                        [self.st.get_type(instance_name), sub_name])
+                n_args += 1
+            else:
+                full_name = '.'.join([instance_name, sub_name])
+        else:
+            self.vw.write_push('pointer', 0)
+            n_args += 1
+            full_name = '.'.join([self.class_name, instance_name])
         self.__get_next_token()
-        self.compile_expression_list()
+        n_args += self.compile_expression_list()
+        self.vw.write_func_call(full_name, n_args)
         self.__get_next_token()
+
+    def compile_array(self, name):
+        self.__get_next_token()
+        self.compile_expression()
+        self.__get_next_token()
+        if self.st.is_defined(name):
+            self.__push_var(name)
+        self.vw.write_arithmetic('add')
