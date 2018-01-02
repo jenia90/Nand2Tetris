@@ -39,12 +39,12 @@ class CompilationEngine:
         kind = self.st.get_kind(name)
         index = self.st.get_index(name)
 
-        if kind == 'static':
-            self.vw.write_push('static', index)
-        elif kind == 'var':
+        if kind == 'var':
             self.vw.write_push('local', index)
         elif kind == 'arg':
             self.vw.write_push('argument', index)
+        elif kind == 'static':
+            self.vw.write_push('static', index)
         else:
             self.vw.write_push('this', index)
 
@@ -52,12 +52,12 @@ class CompilationEngine:
         kind = self.st.get_kind(name)
         index = self.st.get_index(name)
 
-        if kind == 'static':
-            self.vw.write_pop('static', index)
-        elif kind == 'var':
+        if kind == 'var':
             self.vw.write_pop('local', index)
         elif kind == 'arg':
             self.vw.write_pop('argument', index)
+        elif kind == 'static':
+            self.vw.write_pop('static', index)
         else:
             self.vw.write_pop('this', index)
 
@@ -308,12 +308,12 @@ class CompilationEngine:
                     self.vw.write_pop('pointer', 1)
                     self.vw.write_push('that', 0)
                 elif self.st.is_in_current_scope(var_name):
-                    if self.st.get_kind(var_name) == 'var':
-                        self.vw.write_push('local',
-                                           self.st.get_index(var_name))
-                    elif self.st.get_kind(var_name) == 'arg':
-                        self.vw.write_push('argument',
-                                           self.st.get_index(var_name))
+                    kind = self.st.get_kind(var_name, True)
+                    index = self.st.get_index(var_name, True)
+                    if kind == 'var':
+                        self.vw.write_push('local', index)
+                    elif kind == 'arg':
+                        self.vw.write_push('argument', index)
                 else:
                     self.__push_var(var_name)
         elif self.__check_next_value() in UNARY_OPERATORS:

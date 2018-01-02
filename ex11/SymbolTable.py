@@ -42,15 +42,21 @@ class SymbolTable:
     def var_count(self, kind):
         return self._counter.get(kind, 0)
 
-    def get_kind(self, name):
+    def get_kind(self, name, is_current=False):
+        if is_current:
+            return self._current_scope.get(name, None)[1]
         return self._class_symbols.get(name,
                                        self._current_scope.get(name, None))[1]
 
-    def get_type(self, name):
+    def get_type(self, name, is_current=False):
+        if is_current:
+            return self._current_scope.get(name, None)[0]
         return self._class_symbols.get(name,
                                        self._current_scope.get(name, None))[0]
 
-    def get_index(self, name):
+    def get_index(self, name, is_current=False):
+        if is_current:
+            return self._current_scope.get(name, None)[2]
         return self._class_symbols.get(name,
                                        self._current_scope.get(name, None))[2]
 
@@ -61,7 +67,7 @@ class SymbolTable:
             self._current_scope = self._subs[name]
 
     def is_in_current_scope(self, name):
-        return name in self._current_scope
+        return name in self._current_scope.keys()
 
     def is_defined(self, name):
         return name in self._current_scope or \
