@@ -1,0 +1,12 @@
+class Screen
+{
+    function void drawPlayerShip(int x, int y)
+    {
+        return;
+    }
+
+    function void drawEnemyShip(int x, int y)
+    {
+        return;
+    }
+}

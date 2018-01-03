@@ -1,0 +1,83 @@
+class SpaceShips
+{
+    field Ship player;
+    field Array enemies;
+    static int nEnemies;
+    field char up, down, left, right;
+
+    constructor SpaceShips new()
+    {
+        let nEnemies = 3;
+        let player = Ship.new(50,50, false);
+        let enemies = Array.new(nEnemies)
+        let enemies[0] = Ship.new(0, 0, true);
+        let enemies[1] = Ship.new(200, 150, true);
+        let enemies[2] = Ship.new(150, 100, true);
+
+        return this;
+    }
+
+    method void run()
+    {
+        var int i;
+        var boolean quit;
+        let quit = false;
+        Output.moveCursor(0, 26);
+        Output.printString("SPACE SHIPS");
+        do MapKeys();
+
+        while(~quit)
+        {
+
+        }
+
+        return;
+    }
+
+    method void MapKeys()
+    {
+        Output.moveCursor(9, 20);
+        Output.printString("Enter up key");
+        let up = Keyboard.keyPressed();
+        ClearLine(9);
+        Output.moveCursor(9, 20);
+        Output.printString("Enter down key");
+        let down = Keyboard.keyPressed();
+        ClearLine(9);
+        Output.moveCursor(9, 20);
+        Output.printString("Enter left key");
+        let left = Keyboard.keyPressed();
+        ClearLine(9);
+        Output.moveCursor(9, 20);
+        Output.printString("Enter right key");
+        let right = Keyboard.keyPressed();
+        ClearLine(9);
+
+        return;
+    }
+
+    method void ClearLine(int i)
+    {
+        Output.moveCursor(i,0)
+        Output.printString("                                                                ")
+
+        return;
+    }
+
+    method void dispose()
+    {
+        var int i;
+        let i = 0;
+         
+        while(i < nEnemies)
+        {
+            do enemies[i].dispose();
+        }
+
+        do player.dispose();
+        Screen.clearScreen();
+        do Memory.deAlloc(this);
+
+        return;
+    }
+}

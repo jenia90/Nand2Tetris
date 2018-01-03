@@ -1,0 +1,27 @@
+class Direction
+{
+    field int _x, _y;
+
+    constructor Direction new(int x, int y;)
+    {
+        let _x = x;
+        let _y = y;
+        return this;
+    }
+
+    method int X()
+    {
+        return x;
+    }
+
+    method int Y()
+    {
+        return y;
+    }
+
+    method void dispose()
+    {
+        do Memory.deAlloc(this);
+        return;
+    }
+}

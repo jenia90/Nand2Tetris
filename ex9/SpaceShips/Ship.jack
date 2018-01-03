@@ -1,0 +1,72 @@
+class Ship
+{
+    field int pos_x, pos_y;
+    field boolean isEnemy;
+    static int speed;
+    static int size;
+
+
+    contructor Ship new(int x, int y, boolean enemy)
+    {
+        let pos_x = x;
+        let pos_y = y;
+        let speed = 5;
+        let size = 5;
+        let isEnemy = enemy;
+        return this;
+    }
+
+    method void Move(Direction dir)
+    {
+        do Ship.EraseShip();
+        let pos_x = pos_x + Math.multiply(speed, dir.X());
+        let pos_y = pos_y + Math.multiply(speed, dir.Y());
+        do Ship.DrawShip();
+
+        return;
+    }
+
+    function void DrawShip()
+    {
+        if (~isEnemy)
+        {
+            do Screen.setColor(true);
+            do Screen.drawRectangle(pos_x, pox_y, (pos_x + size), (pos_y + size));
+        }
+        else
+        {
+            do Screen.setColor(true);
+            do Screen.drawCircle(pos_x, pox_y, size);
+        }
+
+        return;
+    }
+
+    function void EraseShip()
+    {
+        if (~isEnemy)
+        {
+            do Screen.setColor(false);
+            do Screen.drawRectangle(pos_x, pox_y, (pos_x + size), (pos_y + size));
+        }
+        else
+        {
+            do Screen.setColor(false);
+            do Screen.drawCircle(pos_x, pox_y, size);
+        }
+
+        return;
+    }
+
+    method void dispose()
+    {
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    method Point GetPosition()
+    {
+        let p = Point.new(pos_x, pos_y);
+        return p;
+    }
+}

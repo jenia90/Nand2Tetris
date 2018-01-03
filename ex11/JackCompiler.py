@@ -8,6 +8,7 @@ DEST_EXT = '.vm'
 
 
 def process_file(f):
+    print("Compiling ", f)
     in_f = open(f, 'r')
     out_f = open(in_f.name.split(SOURCE_EXT)[0] + DEST_EXT, 'w')
     c = CE.CompilationEngine(in_f, out_f)
@@ -18,7 +19,7 @@ def process_file(f):
 
 def main(args):
     if args is None:
-        Exception("Wrong argument!\nUsage: JackAnalyzer <input file\dir>")
+        Exception("Wrong argument!\nUsage: JackCompiler <input file\dir>")
 
     if os.path.isdir(args):  # process directories
         if not args.endswith(os.sep):
