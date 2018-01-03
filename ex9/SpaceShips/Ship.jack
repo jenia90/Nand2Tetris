@@ -1,12 +1,13 @@
 class Ship
 {
     field int pos_x, pos_y;
+    field Direction _dir;
     field boolean isEnemy;
     static int speed;
     static int size;
 
 
-    contructor Ship new(int x, int y, boolean enemy)
+    constructor Ship new(int x, int y, boolean enemy)
     {
         let pos_x = x;
         let pos_y = y;
@@ -18,15 +19,22 @@ class Ship
 
     method void Move(Direction dir)
     {
+        let _dir = dir;
         do Ship.EraseShip();
-        let pos_x = pos_x + Math.multiply(speed, dir.X());
-        let pos_y = pos_y + Math.multiply(speed, dir.Y());
+        let pos_x = pos_x + Math.multiply(speed, _dir.X());
+        let pos_y = pos_y + Math.multiply(speed, _dir.Y());
         do Ship.DrawShip();
 
         return;
     }
 
-    function void DrawShip()
+    method Point GetPosition()
+    {
+        let p = Point.new(pos_x, pos_y);
+        return p;
+    }
+
+    /**function void DrawShip()
     {
         if (~isEnemy)
         {
@@ -56,7 +64,7 @@ class Ship
         }
 
         return;
-    }
+    }*/
 
     method void dispose()
     {
@@ -64,9 +72,113 @@ class Ship
         return;
     }
 
-    method Point GetPosition()
+    function void drawLeft(int location) 
     {
-        let p = Point.new(pos_x, pos_y);
-        return p;
+        let memAddress = 16384+location;
+        do Memory.poke(memAddress+0, 0);
+        do Memory.poke(memAddress+32, 0);
+        do Memory.poke(memAddress+64, 15872);
+        do Memory.poke(memAddress+96, -5760);
+        do Memory.poke(memAddress+128, 13920);
+        do Memory.poke(memAddress+160, -5736);
+        do Memory.poke(memAddress+192, 13926);
+        do Memory.poke(memAddress+224, -5735);
+        do Memory.poke(memAddress+256, 13926);
+        do Memory.poke(memAddress+288, -5736);
+        do Memory.poke(memAddress+320, 13920);
+        do Memory.poke(memAddress+352, -5760);
+        do Memory.poke(memAddress+384, 15872);
+        do Memory.poke(memAddress+416, 0);
+        do Memory.poke(memAddress+448, 0);
+        do Memory.poke(memAddress+480, 0);
+        return;
+    }
+
+    function void drawUp(int location) 
+    {
+        let memAddress = 16384+location;
+        do Memory.poke(memAddress+0, 256);
+        do Memory.poke(memAddress+32, 640);
+        do Memory.poke(memAddress+64, 640);
+        do Memory.poke(memAddress+96, 1344);
+        do Memory.poke(memAddress+128, 1344);
+        do Memory.poke(memAddress+160, 2720);
+        do Memory.poke(memAddress+192, 2720);
+        do Memory.poke(memAddress+224, 5456);
+        do Memory.poke(memAddress+256, 5456);
+        do Memory.poke(memAddress+288, 10920);
+        do Memory.poke(memAddress+320, 10920);
+        do Memory.poke(memAddress+352, 13656);
+        do Memory.poke(memAddress+384, 10920);
+        do Memory.poke(memAddress+416, 16376);
+        do Memory.poke(memAddress+448, 5456);
+        do Memory.poke(memAddress+480, 5456);
+        return;
+    }
+
+    function void drawRight(int location) 
+    {
+        let memAddress = 16384+location;
+        do Memory.poke(memAddress+0, 0);
+        do Memory.poke(memAddress+32, 0);
+        do Memory.poke(memAddress+64, 0);
+        do Memory.poke(memAddress+96, 124);
+        do Memory.poke(memAddress+128, 407);
+        do Memory.poke(memAddress+160, 1644);
+        do Memory.poke(memAddress+192, 6551);
+        do Memory.poke(memAddress+224, 26220);
+        do Memory.poke(memAddress+256, -26217);
+        do Memory.poke(memAddress+288, 26220);
+        do Memory.poke(memAddress+320, 6551);
+        do Memory.poke(memAddress+352, 1644);
+        do Memory.poke(memAddress+384, 407);
+        do Memory.poke(memAddress+416, 124);
+        do Memory.poke(memAddress+448, 0);
+        do Memory.poke(memAddress+480, 0);
+        return;
+    }
+
+    function void drawDown(int location) 
+    {
+        let memAddress = 16384+location;
+        do Memory.poke(memAddress+0, 2728);
+        do Memory.poke(memAddress+32, 2728);
+        do Memory.poke(memAddress+64, 8188);
+        do Memory.poke(memAddress+96, 5460);
+        do Memory.poke(memAddress+128, 6828);
+        do Memory.poke(memAddress+160, 5460);
+        do Memory.poke(memAddress+192, 5460);
+        do Memory.poke(memAddress+224, 2728);
+        do Memory.poke(memAddress+256, 2728);
+        do Memory.poke(memAddress+288, 1360);
+        do Memory.poke(memAddress+320, 1360);
+        do Memory.poke(memAddress+352, 672);
+        do Memory.poke(memAddress+384, 672);
+        do Memory.poke(memAddress+416, 320);
+        do Memory.poke(memAddress+448, 320);
+        do Memory.poke(memAddress+480, 128);
+        return;
+    }
+
+    function void EraseShip(int location) 
+    {
+        let memAddress = 16384+location;
+        do Memory.poke(memAddress+0, 0);
+        do Memory.poke(memAddress+32, 0);
+        do Memory.poke(memAddress+64, 0);
+        do Memory.poke(memAddress+96, 0);
+        do Memory.poke(memAddress+128, 0);
+        do Memory.poke(memAddress+160, 0);
+        do Memory.poke(memAddress+192, 0);
+        do Memory.poke(memAddress+224, 0);
+        do Memory.poke(memAddress+256, 0);
+        do Memory.poke(memAddress+288, 0);
+        do Memory.poke(memAddress+320, 0);
+        do Memory.poke(memAddress+352, 0);
+        do Memory.poke(memAddress+384, 0);
+        do Memory.poke(memAddress+416, 0);
+        do Memory.poke(memAddress+448, 0);
+        do Memory.poke(memAddress+480, 0);
+        return;
     }
 }

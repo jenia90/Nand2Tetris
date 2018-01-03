@@ -20,6 +20,7 @@ class SpaceShips
     method void run()
     {
         var int i;
+        var char key;
         var boolean quit;
         let quit = false;
         Output.moveCursor(0, 26);
@@ -28,7 +29,7 @@ class SpaceShips
 
         while(~quit)
         {
-
+            
         }
 
         return;

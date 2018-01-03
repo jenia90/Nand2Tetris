@@ -2,6 +2,9 @@ class Main
 {
     function void Main()
     {
-        
+        var SpaceShips game;
+        let game = SpaceShips.new();
+        do game.run();
+        return;
     }
 }

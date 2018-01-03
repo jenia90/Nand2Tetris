@@ -24,4 +24,36 @@ class Direction
         do Memory.deAlloc(this);
         return;
     }
+
+    function Direction Left()
+    {
+        var Direction dir;
+        let dir = Direction.new(-1, 0)
+
+        return dir;
+    }
+
+    function Direction Right()
+    {
+        var Direction dir;
+        let dir = Direction.new(1, 0)
+
+        return dir;
+    }
+
+    function Direction Down()
+    {
+        var Direction dir;
+        let dir = Direction.new(0, -1)
+
+        return dir;
+    }
+
+    function Direction Up()
+    {
+        var Direction dir;
+        let dir = Direction.new(0, 1)
+
+        return dir;
+    }
 }
