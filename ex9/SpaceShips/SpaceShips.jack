@@ -8,11 +8,16 @@ class SpaceShips
     constructor SpaceShips new()
     {
         let nEnemies = 3;
-        let player = Ship.new(50,50, false);
-        let enemies = Array.new(nEnemies)
+        let player = Ship.new(320, 100, false);
+        let enemies = Array.new(nEnemies);
         let enemies[0] = Ship.new(0, 0, true);
         let enemies[1] = Ship.new(200, 150, true);
         let enemies[2] = Ship.new(150, 100, true);
+
+        let up = 131;
+        let down = 133;
+        let left = 130;
+        let right = 132;
 
         return this;
     }
@@ -22,45 +27,70 @@ class SpaceShips
         var int i;
         var char key;
         var boolean quit;
+        var int dir;
+        var Ship curr_ship;
         let quit = false;
-        Output.moveCursor(0, 26);
-        Output.printString("SPACE SHIPS");
-        do MapKeys();
+        let dir = 0;
+        do Output.moveCursor(0, 26);
+        do Output.printString("SPACE SHIPS");
 
         while(~quit)
         {
-            
+            let key = Keyboard.keyPressed();
+
+            while (((key > 133) | (key < 130)) &
+                   (~(key = 113)))
+            {
+                let key = Keyboard.keyPressed();
+            }
+
+            if (key = 27)
+            {
+                let quit = true;
+            }
+            if(key = up)
+            {
+                let dir = 1;
+            }
+            if (key = down)
+            {
+                let dir = 2;
+            }
+            if (key = left)
+            {
+                let dir = 3;
+            }
+            if (key = right)
+            {
+                let dir = 4;
+            }
+            else
+            {
+                let dir = 0;
+            }
+
+            do player.Move(dir);
+            do Sys.wait(5);
+
+            /**let i = 0;
+            while(i<nEnemies)
+            {
+                let curr_ship = enemies[i];
+                let dir = 4-i;
+                //do curr_ship.Move(dir);
+                let i = i + 1;
+            }*/
         }
-
-        return;
-    }
-
-    method void MapKeys()
-    {
-        Output.moveCursor(9, 20);
-        Output.printString("Enter up key");
-        let up = Keyboard.keyPressed();
-        ClearLine(9);
-        Output.moveCursor(9, 20);
-        Output.printString("Enter down key");
-        let down = Keyboard.keyPressed();
-        ClearLine(9);
-        Output.moveCursor(9, 20);
-        Output.printString("Enter left key");
-        let left = Keyboard.keyPressed();
-        ClearLine(9);
-        Output.moveCursor(9, 20);
-        Output.printString("Enter right key");
-        let right = Keyboard.keyPressed();
-        ClearLine(9);
 
         return;
     }
 
     method void ClearLine(int i)
     {
-        Output.moveCursor(i,0)
-        Output.printString("                                                                ")
+        do Screen.clearScreen();
+        do Output.moveCursor(0, 26);
+        do Output.printString("SPACE SHIPS");
+        do Output.moveCursor(i,0);
 
         return;
     }
@@ -68,15 +98,17 @@ class SpaceShips
     method void dispose()
     {
         var int i;
+        var Ship curr_ship;
         let i = 0;
          
         while(i < nEnemies)
         {
-            do enemies[i].dispose();
+            let curr_ship = enemies[i];
+            do curr_ship.dispose();
         }
 
         do player.dispose();
-        Screen.clearScreen();
+        do Screen.clearScreen();
         do Memory.deAlloc(this);
 
         return;

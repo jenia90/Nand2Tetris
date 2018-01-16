@@ -8,15 +8,8 @@ class Point
         return this;
     }
 
-    method int X()
-    {
-        return cx;
-    }
-
-    method int Y()
-    {
-        return cy;
-    }
+    method int X() { return cx; }
+    method int Y() { return cy; }
 
     method void dispose()
     {

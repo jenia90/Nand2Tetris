@@ -1,10 +1,11 @@
 class Ship
 {
-    field int pos_x, pos_y;
-    field Direction _dir;
+    field int pos_x, pos_y, loc, last_dir;
     field boolean isEnemy;
     static int speed;
     static int size;
+    static int memAddress;
+    
 
 
     constructor Ship new(int x, int y, boolean enemy)
@@ -13,58 +14,95 @@ class Ship
         let pos_y = y;
         let speed = 5;
         let size = 5;
+        let last_dir = 1;
         let isEnemy = enemy;
+        
+        if (isEnemy)
+        {
+            do DrawEnemyShip();
+        }
+        else
+        {
+            let loc = Math.multiply(pos_y, 63) + pos_x;
+            do Move(0);
+        }
+
         return this;
     }
 
-    method void Move(Direction dir)
+    method void Move(int dir)
     {
-        let _dir = dir;
-        do Ship.EraseShip();
-        let pos_x = pos_x + Math.multiply(speed, _dir.X());
-        let pos_y = pos_y + Math.multiply(speed, _dir.Y());
-        do Ship.DrawShip();
+        var int x, y, new_loc;
+
+        if (~isEnemy)
+        {
+            if (~(dir = 0))
+            {
+                do EraseShip(loc);
+                if(dir = 1)
+                {
+                    let x = pos_x;
+                    let y = pos_y + Math.multiply(speed, 1);
+                    let new_loc = Math.multiply(y, 63) + x;
+                    do Ship.drawUp(loc);
+                }
+                if(dir = 2)
+                {
+                    let x = pos_x;
+                    let y = pos_y - Math.multiply(speed, 1);
+                    let new_loc = Math.multiply(y, 63) + x;
+                    do Ship.drawDown(loc);
+                }
+                if(dir = 3)
+                {
+                    let x = pos_x - Math.multiply(speed, 1);
+                    let y = pos_y;
+                    let new_loc = Math.multiply(y, 63) + x;
+                    do Ship.drawLeft(loc);
+                }
+                if(dir = 4)
+                {
+                    let x = pos_x + Math.multiply(speed, 1);
+                    let y = pos_y;
+                    let new_loc = Math.multiply(y, 63) + x;
+                    do Ship.drawRight(loc);
+                }
+            }
+        }
+        else
+        {
+            do EraseEnemyShip();
+            let pos_x = x;
+            let pos_y = y;
+            do DrawEnemyShip();
+        }
 
         return;
     }
 
     method Point GetPosition()
     {
+        var Point p;
         let p = Point.new(pos_x, pos_y);
+
         return p;
     }
 
-    /**function void DrawShip()
+    method void DrawEnemyShip()
     {
-        if (~isEnemy)
-        {
-            do Screen.setColor(true);
-            do Screen.drawRectangle(pos_x, pox_y, (pos_x + size), (pos_y + size));
-        }
-        else
-        {
-            do Screen.setColor(true);
-            do Screen.drawCircle(pos_x, pox_y, size);
-        }
+        do Screen.setColor(true);
+        do Screen.drawRectangle(pos_x, pos_y, pos_x + 5, pos_y + 5);
 
         return;
     }
 
-    function void EraseShip()
+    method void EraseEnemyShip()
     {
-        if (~isEnemy)
-        {
-            do Screen.setColor(false);
-            do Screen.drawRectangle(pos_x, pox_y, (pos_x + size), (pos_y + size));
-        }
-        else
-        {
-            do Screen.setColor(false);
-            do Screen.drawCircle(pos_x, pox_y, size);
-        }
+        do Screen.setColor(false);
+        do Screen.drawCircle(pos_x, pos_y, size);
 
         return;
-    }*/
+    }
 
     method void dispose()
     {
@@ -74,6 +112,7 @@ class Ship
 
     function void drawLeft(int location) 
     {
+        do Output.printString(String.intValue(location));
         let memAddress = 16384+location;
         do Memory.poke(memAddress+0, 0);
         do Memory.poke(memAddress+32, 0);
@@ -160,7 +199,7 @@ class Ship
         return;
     }
 
-    function void EraseShip(int location) 
+    method void EraseShip(int location) 
     {
         let memAddress = 16384+location;
         do Memory.poke(memAddress+0, 0);

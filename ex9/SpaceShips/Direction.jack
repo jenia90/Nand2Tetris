@@ -2,21 +2,37 @@ class Direction
 {
     field int _x, _y;
 
-    constructor Direction new(int x, int y;)
+    constructor Direction new(int x, int y)
     {
         let _x = x;
         let _y = y;
         return this;
     }
 
-    method int X()
-    {
-        return x;
-    }
 
-    method int Y()
+    method int X() { return _x; }
+    method int Y() { return _y; }
+
+    method int ToInt()
     {
-        return y;
+        if ((_x = 0) & (_y = 1))
+        {
+            return 1;
+        }
+        if ((_x = 0) & (_y = -1))
+        {
+            return 2;
+        }
+        if ((_x = 1) & (_y = 0))
+        {
+            return 4;
+        }
+        if ((_x = -1) & (_y = 0))
+        {
+            return 3;
+        }
+
+        return 0;
     }
 
     method void dispose()
@@ -25,35 +41,23 @@ class Direction
         return;
     }
 
-    function Direction Left()
+    function int Left()
     {
-        var Direction dir;
-        let dir = Direction.new(-1, 0)
-
-        return dir;
+        return 3;
     }
 
-    function Direction Right()
+    function int Right()
     {
-        var Direction dir;
-        let dir = Direction.new(1, 0)
-
-        return dir;
+        return 4;
     }
 
-    function Direction Down()
+    function int Down()
     {
-        var Direction dir;
-        let dir = Direction.new(0, -1)
-
-        return dir;
+        return 2;
     }
 
-    function Direction Up()
+    function int Up()
     {
-        var Direction dir;
-        let dir = Direction.new(0, 1)
-
-        return dir;
+        return 1;
     }
 }

@@ -1,10 +1,11 @@
 class Main
 {
-    function void Main()
+    function void main()
     {
         var SpaceShips game;
         let game = SpaceShips.new();
         do game.run();
+        do game.dispose();
         return;
     }
 }
