@@ -12,7 +12,7 @@ class Ship
     {
         let pos_x = x;
         let pos_y = y;
-        let speed = 5;
+        let speed = 1;
         let size = 5;
         let last_dir = 1;
         let isEnemy = enemy;
@@ -39,41 +39,81 @@ class Ship
             if (~(dir = 0))
             {
                 do EraseShip(loc);
-                if(dir = 1)
-                {
-                    let x = pos_x;
-                    let y = pos_y + Math.multiply(speed, 1);
-                    let new_loc = Math.multiply(y, 63) + x;
-                    do Ship.drawUp(loc);
-                }
                 if(dir = 2)
                 {
-                    let x = pos_x;
-                    let y = pos_y - Math.multiply(speed, 1);
-                    let new_loc = Math.multiply(y, 63) + x;
-                    do Ship.drawDown(loc);
+                    let pos_y = pos_y - speed;
+                    let new_loc = Math.multiply(pos_y, 32) + pos_x;
+                    do Ship.drawUp(new_loc);
+                }
+                if(dir = 1)
+                {
+                    let pos_y = pos_y + speed;
+                    let new_loc = Math.multiply(pos_y, 32) + pos_x;
+                    do Ship.drawDown(new_loc);
                 }
                 if(dir = 3)
                 {
-                    let x = pos_x - Math.multiply(speed, 1);
-                    let y = pos_y;
-                    let new_loc = Math.multiply(y, 63) + x;
-                    do Ship.drawLeft(loc);
+                    let pos_x = pos_x - speed;
+                    let new_loc = Math.multiply(pos_y, 16) + pos_x;
+                    do Ship.drawLeft(new_loc);
                 }
                 if(dir = 4)
                 {
-                    let x = pos_x + Math.multiply(speed, 1);
-                    let y = pos_y;
-                    let new_loc = Math.multiply(y, 63) + x;
-                    do Ship.drawRight(loc);
+                    let pos_x = pos_x + speed;
+                    let new_loc = Math.multiply(pos_y, 16) + pos_x;
+                    do Ship.drawRight(new_loc);
                 }
+                let loc = new_loc;
             }
         }
         else
         {
             do EraseEnemyShip();
-            let pos_x = x;
-            let pos_y = y;
+            if (dir = 1)
+            {
+                if (pos_y < 250)
+                {
+                    let pos_y = pos_y + 1;
+                }
+                else
+                {
+                    let pos_y = 16;
+                }
+            }
+            if (dir = 2)
+            {
+                if (pos_y > 15)
+                {
+                    let pos_y = pos_y - 1;
+                }
+                else
+                {
+                    let pos_y = 250;
+                }
+            }
+            if (dir = 3)
+            {
+                
+                if (pos_x > 10)
+                {
+                    let pos_x = pos_x - 1;
+                }
+                else
+                {
+                    let pos_x = 506;
+                }
+            }
+            if (dir = 4)
+            {
+                if (pos_x < 506)
+                {
+                    let pos_x = pos_x + 1;
+                }
+                else
+                {
+                    let pos_x = 10;
+                }
+            }
             do DrawEnemyShip();
         }
 
@@ -112,7 +152,6 @@ class Ship
 
     function void drawLeft(int location) 
     {
-        do Output.printString(String.intValue(location));
         let memAddress = 16384+location;
         do Memory.poke(memAddress+0, 0);
         do Memory.poke(memAddress+32, 0);

@@ -1,0 +1,12 @@
+<class>
+  <keyword> class </keyword>
+  <identifier> FunBegin </identifier>
+  <symbol> { </symbol>
+  <classVarDec>
+    <keyword> field </keyword>
+    <keyword> int </keyword>
+    <identifier> jenia </identifier>
+    <symbol> ; </symbol>
+  </classVarDec>
+  <symbol> } </symbol>
+</class>

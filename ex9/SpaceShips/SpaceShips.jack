@@ -8,7 +8,7 @@ class SpaceShips
     constructor SpaceShips new()
     {
         let nEnemies = 3;
-        let player = Ship.new(320, 100, false);
+        let player = Ship.new(200, 50, false);
         let enemies = Array.new(nEnemies);
         let enemies[0] = Ship.new(0, 0, true);
         let enemies[1] = Ship.new(200, 150, true);
@@ -39,34 +39,32 @@ class SpaceShips
             let key = Keyboard.keyPressed();
 
             while (((key > 133) | (key < 130)) &
-                   (~(key = 113)))
+                   (~(key = 81)))
             {
                 let key = Keyboard.keyPressed();
+                let dir = 0;
             }
 
             if (key = 27)
             {
                 let quit = true;
+                do Screen.clearScreen();
             }
-            if(key = up)
+            if(key = 133)
             {
                 let dir = 1;
             }
-            if (key = down)
+            if (key = 131)
             {
                 let dir = 2;
             }
-            if (key = left)
+            if (key = 130)
             {
                 let dir = 3;
             }
-            if (key = right)
+            if (key = 132)
             {
                 let dir = 4;
-            }
-            else
-            {
-                let dir = 0;
             }
 
             do player.Move(dir);
@@ -81,6 +79,10 @@ class SpaceShips
                 let i = i + 1;
             }*/
         }
+
+        do Screen.clearScreen();
+        do Output.moveCursor(9, 26);
+        do Output.printString("BYE!");
 
         return;
     }
