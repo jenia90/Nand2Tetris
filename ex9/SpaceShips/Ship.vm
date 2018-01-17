@@ -1,15 +1,19 @@
 function Ship.new 0
-push constant 5
+push constant 7
 call Memory.alloc 1
 pop pointer 0
+push constant 0
+pop static 1
+push constant 8000
+pop static 2
 push argument 0
 pop this 0
 push argument 1
 pop this 1
-push constant 1
-pop static 0
-push constant 5
-pop static 1
+push constant 0
+pop this 5
+push constant 0
+pop this 6
 push constant 1
 pop this 3
 push argument 2
@@ -18,17 +22,15 @@ push this 4
 if-goto IF_TRUE0
 goto IF_FALSE0
 label IF_TRUE0
+push constant 1
+pop this 6
+push constant 1
+pop this 5
 push pointer 0
 call Ship.DrawEnemyShip 1
 pop temp 0
 goto IF_END0
 label IF_FALSE0
-push this 1
-push constant 63
-call Math.multiply 2
-push this 0
-add
-pop this 2
 push pointer 0
 push constant 0
 call Ship.Move 2
@@ -44,6 +46,10 @@ not
 if-goto IF_TRUE0
 goto IF_FALSE0
 label IF_TRUE0
+push pointer 0
+push this 2
+call Ship.EraseShip 2
+pop temp 0
 push argument 1
 push constant 0
 eq
@@ -51,93 +57,154 @@ not
 if-goto IF_TRUE1
 goto IF_FALSE1
 label IF_TRUE1
-push pointer 0
-push this 2
-call Ship.EraseShip 2
-pop temp 0
 push argument 1
-push constant 2
+push constant 1
 eq
 if-goto IF_TRUE2
 goto IF_FALSE2
 label IF_TRUE2
-push this 1
-push static 0
+push this 5
+push constant 1
+neg
+gt
+if-goto IF_TRUE3
+goto IF_FALSE3
+label IF_TRUE3
+push this 5
+push constant 1
 sub
-pop this 1
-push this 1
-push constant 32
-call Math.multiply 2
-push this 0
-add
+pop this 5
+label IF_FALSE3
+push pointer 0
+call Ship.UpdatePositon 1
 pop local 2
 push local 2
 call Ship.drawUp 1
 pop temp 0
 label IF_FALSE2
 push argument 1
-push constant 1
-eq
-if-goto IF_TRUE3
-goto IF_FALSE3
-label IF_TRUE3
-push this 1
-push static 0
-add
-pop this 1
-push this 1
-push constant 32
-call Math.multiply 2
-push this 0
-add
-pop local 2
-push local 2
-call Ship.drawDown 1
-pop temp 0
-label IF_FALSE3
-push argument 1
-push constant 3
+push constant 2
 eq
 if-goto IF_TRUE4
 goto IF_FALSE4
 label IF_TRUE4
-push this 0
-push static 0
-sub
-pop this 0
-push this 1
-push constant 16
-call Math.multiply 2
-push this 0
+push this 5
+push constant 1
+lt
+if-goto IF_TRUE5
+goto IF_FALSE5
+label IF_TRUE5
+push this 5
+push constant 1
 add
+pop this 5
+label IF_FALSE5
+push pointer 0
+call Ship.UpdatePositon 1
+pop local 2
+push local 2
+call Ship.drawDown 1
+pop temp 0
+label IF_FALSE4
+push argument 1
+push constant 3
+eq
+if-goto IF_TRUE6
+goto IF_FALSE6
+label IF_TRUE6
+push this 6
+push constant 1
+neg
+gt
+if-goto IF_TRUE7
+goto IF_FALSE7
+label IF_TRUE7
+push this 6
+push constant 1
+sub
+pop this 6
+label IF_FALSE7
+push pointer 0
+call Ship.UpdatePositon 1
 pop local 2
 push local 2
 call Ship.drawLeft 1
 pop temp 0
-label IF_FALSE4
+label IF_FALSE6
 push argument 1
 push constant 4
 eq
-if-goto IF_TRUE5
-goto IF_FALSE5
-label IF_TRUE5
-push this 0
-push static 0
+if-goto IF_TRUE8
+goto IF_FALSE8
+label IF_TRUE8
+push this 6
+push constant 1
+lt
+if-goto IF_TRUE9
+goto IF_FALSE9
+label IF_TRUE9
+push this 6
+push constant 1
 add
-pop this 0
-push this 1
-push constant 16
-call Math.multiply 2
-push this 0
-add
+pop this 6
+label IF_FALSE9
+push pointer 0
+call Ship.UpdatePositon 1
 pop local 2
 push local 2
 call Ship.drawRight 1
 pop temp 0
-label IF_FALSE5
+label IF_FALSE8
+push argument 1
+pop this 3
+goto IF_END1
+label IF_FALSE1
+push pointer 0
+call Ship.UpdatePositon 1
+pop local 2
+push this 3
+push constant 1
+eq
+if-goto IF_TRUE10
+goto IF_FALSE10
+label IF_TRUE10
+push local 2
+call Ship.drawDown 1
+pop temp 0
+label IF_FALSE10
+push this 3
+push constant 2
+eq
+if-goto IF_TRUE11
+goto IF_FALSE11
+label IF_TRUE11
+push local 2
+call Ship.drawUp 1
+pop temp 0
+label IF_FALSE11
+push this 3
+push constant 3
+eq
+if-goto IF_TRUE12
+goto IF_FALSE12
+label IF_TRUE12
+push local 2
+call Ship.drawLeft 1
+pop temp 0
+label IF_FALSE12
+push this 3
+push constant 4
+eq
+if-goto IF_TRUE13
+goto IF_FALSE13
+label IF_TRUE13
+push local 2
+call Ship.drawRight 1
+pop temp 0
+label IF_FALSE13
+label IF_END1
 push local 2
 pop this 2
-label IF_FALSE1
 goto IF_END0
 label IF_FALSE0
 push pointer 0
@@ -146,91 +213,91 @@ pop temp 0
 push argument 1
 push constant 1
 eq
-if-goto IF_TRUE6
-goto IF_FALSE6
-label IF_TRUE6
+if-goto IF_TRUE14
+goto IF_FALSE14
+label IF_TRUE14
 push this 1
 push constant 250
 lt
-if-goto IF_TRUE7
-goto IF_FALSE7
-label IF_TRUE7
+if-goto IF_TRUE15
+goto IF_FALSE15
+label IF_TRUE15
 push this 1
-push constant 1
+push this 5
 add
 pop this 1
-goto IF_END7
-label IF_FALSE7
+goto IF_END15
+label IF_FALSE15
 push constant 16
 pop this 1
-label IF_END7
-label IF_FALSE6
+label IF_END15
+label IF_FALSE14
 push argument 1
 push constant 2
 eq
-if-goto IF_TRUE8
-goto IF_FALSE8
-label IF_TRUE8
+if-goto IF_TRUE16
+goto IF_FALSE16
+label IF_TRUE16
 push this 1
 push constant 15
 gt
-if-goto IF_TRUE9
-goto IF_FALSE9
-label IF_TRUE9
+if-goto IF_TRUE17
+goto IF_FALSE17
+label IF_TRUE17
 push this 1
-push constant 1
+push this 5
 sub
 pop this 1
-goto IF_END9
-label IF_FALSE9
+goto IF_END17
+label IF_FALSE17
 push constant 250
 pop this 1
-label IF_END9
-label IF_FALSE8
+label IF_END17
+label IF_FALSE16
 push argument 1
 push constant 3
 eq
-if-goto IF_TRUE10
-goto IF_FALSE10
-label IF_TRUE10
+if-goto IF_TRUE18
+goto IF_FALSE18
+label IF_TRUE18
 push this 0
 push constant 10
 gt
-if-goto IF_TRUE11
-goto IF_FALSE11
-label IF_TRUE11
+if-goto IF_TRUE19
+goto IF_FALSE19
+label IF_TRUE19
 push this 0
-push constant 1
+push this 6
 sub
 pop this 0
-goto IF_END11
-label IF_FALSE11
+goto IF_END19
+label IF_FALSE19
 push constant 506
 pop this 0
-label IF_END11
-label IF_FALSE10
+label IF_END19
+label IF_FALSE18
 push argument 1
 push constant 4
 eq
-if-goto IF_TRUE12
-goto IF_FALSE12
-label IF_TRUE12
+if-goto IF_TRUE20
+goto IF_FALSE20
+label IF_TRUE20
 push this 0
 push constant 506
 lt
-if-goto IF_TRUE13
-goto IF_FALSE13
-label IF_TRUE13
+if-goto IF_TRUE21
+goto IF_FALSE21
+label IF_TRUE21
 push this 0
-push constant 1
+push this 6
 add
 pop this 0
-goto IF_END13
-label IF_FALSE13
+goto IF_END21
+label IF_FALSE21
 push constant 10
 pop this 0
-label IF_END13
-label IF_FALSE12
+label IF_END21
+label IF_FALSE20
 push pointer 0
 call Ship.DrawEnemyShip 1
 pop temp 0
@@ -244,6 +311,165 @@ push this 0
 push this 1
 call Point.new 2
 pop local 0
+push local 0
+return
+function Ship.UpdatePositon 1
+push argument 0
+pop pointer 0
+push this 3
+push constant 2
+eq
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push this 0
+push this 6
+add
+pop this 0
+push this 1
+push this 5
+push constant 4
+call Math.multiply 2
+sub
+pop this 1
+push this 1
+push constant 26
+lt
+if-goto IF_TRUE1
+goto IF_FALSE1
+label IF_TRUE1
+push constant 230
+pop this 1
+label IF_FALSE1
+push this 1
+push constant 32
+call Math.multiply 2
+push this 0
+add
+pop local 0
+label IF_FALSE0
+push this 3
+push constant 1
+eq
+if-goto IF_TRUE2
+goto IF_FALSE2
+label IF_TRUE2
+push this 0
+push this 6
+add
+pop this 0
+push this 1
+push this 5
+push constant 4
+call Math.multiply 2
+add
+pop this 1
+push this 1
+push constant 230
+gt
+if-goto IF_TRUE3
+goto IF_FALSE3
+label IF_TRUE3
+push constant 26
+pop this 1
+label IF_FALSE3
+push this 1
+push constant 32
+call Math.multiply 2
+push this 0
+add
+pop local 0
+label IF_FALSE2
+push this 3
+push constant 3
+eq
+if-goto IF_TRUE4
+goto IF_FALSE4
+label IF_TRUE4
+push this 0
+push this 6
+add
+pop this 0
+push this 1
+push this 5
+push constant 4
+call Math.multiply 2
+add
+pop this 1
+push this 0
+push constant 26
+lt
+if-goto IF_TRUE5
+goto IF_FALSE5
+label IF_TRUE5
+push constant 480
+pop this 0
+label IF_FALSE5
+push this 1
+push constant 32
+call Math.multiply 2
+push this 0
+add
+pop local 0
+label IF_FALSE4
+push this 3
+push constant 4
+eq
+if-goto IF_TRUE6
+goto IF_FALSE6
+label IF_TRUE6
+push this 0
+push this 6
+add
+pop this 0
+push this 1
+push this 5
+push constant 4
+call Math.multiply 2
+add
+pop this 1
+push this 0
+push constant 480
+gt
+if-goto IF_TRUE7
+goto IF_FALSE7
+label IF_TRUE7
+push constant 26
+pop this 0
+label IF_FALSE7
+push this 1
+push constant 32
+call Math.multiply 2
+push this 0
+add
+pop local 0
+label IF_FALSE6
+push local 0
+push static 1
+push constant 16
+add
+lt
+if-goto IF_TRUE8
+goto IF_FALSE8
+label IF_TRUE8
+push static 2
+push constant 64
+sub
+pop local 0
+label IF_FALSE8
+push local 0
+push static 2
+push constant 16
+sub
+gt
+if-goto IF_TRUE9
+goto IF_FALSE9
+label IF_TRUE9
+push static 1
+push constant 64
+add
+pop local 0
+label IF_FALSE9
 push local 0
 return
 function Ship.DrawEnemyShip 0
@@ -273,14 +499,33 @@ call Screen.setColor 1
 pop temp 0
 push this 0
 push this 1
-push static 1
-call Screen.drawCircle 3
+push this 0
+push constant 5
+add
+push this 1
+push constant 5
+add
+call Screen.drawRectangle 4
 pop temp 0
 push constant 0
 return
 function Ship.dispose 0
 push argument 0
 pop pointer 0
+push this 4
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push pointer 0
+push this 2
+call Ship.EraseShip 2
+pop temp 0
+goto IF_END0
+label IF_FALSE0
+push pointer 0
+call Ship.EraseEnemyShip 1
+pop temp 0
+label IF_END0
 push pointer 0
 call Memory.deAlloc 1
 pop temp 0
@@ -290,103 +535,103 @@ function Ship.drawLeft 0
 push constant 16384
 push argument 0
 add
-pop static 2
-push static 2
+pop static 0
+push static 0
 push constant 0
 add
 push constant 0
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 32
 add
 push constant 0
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 64
 add
 push constant 15872
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 96
 add
 push constant 5760
 neg
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 128
 add
 push constant 13920
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 160
 add
 push constant 5736
 neg
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 192
 add
 push constant 13926
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 224
 add
 push constant 5735
 neg
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 256
 add
 push constant 13926
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 288
 add
 push constant 5736
 neg
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 320
 add
 push constant 13920
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 352
 add
 push constant 5760
 neg
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 384
 add
 push constant 15872
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 416
 add
 push constant 0
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 448
 add
 push constant 0
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 480
 add
 push constant 0
@@ -398,98 +643,98 @@ function Ship.drawUp 0
 push constant 16384
 push argument 0
 add
-pop static 2
-push static 2
+pop static 0
+push static 0
 push constant 0
 add
 push constant 256
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 32
 add
 push constant 640
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 64
 add
 push constant 640
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 96
 add
 push constant 1344
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 128
 add
 push constant 1344
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 160
 add
 push constant 2720
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 192
 add
 push constant 2720
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 224
 add
 push constant 5456
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 256
 add
 push constant 5456
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 288
 add
 push constant 10920
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 320
 add
 push constant 10920
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 352
 add
 push constant 13656
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 384
 add
 push constant 10920
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 416
 add
 push constant 16376
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 448
 add
 push constant 5456
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 480
 add
 push constant 5456
@@ -501,99 +746,99 @@ function Ship.drawRight 0
 push constant 16384
 push argument 0
 add
-pop static 2
-push static 2
+pop static 0
+push static 0
 push constant 0
 add
 push constant 0
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 32
 add
 push constant 0
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 64
 add
 push constant 0
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 96
 add
 push constant 124
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 128
 add
 push constant 407
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 160
 add
 push constant 1644
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 192
 add
 push constant 6551
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 224
 add
 push constant 26220
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 256
 add
 push constant 26217
 neg
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 288
 add
 push constant 26220
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 320
 add
 push constant 6551
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 352
 add
 push constant 1644
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 384
 add
 push constant 407
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 416
 add
 push constant 124
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 448
 add
 push constant 0
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 480
 add
 push constant 0
@@ -605,98 +850,98 @@ function Ship.drawDown 0
 push constant 16384
 push argument 0
 add
-pop static 2
-push static 2
+pop static 0
+push static 0
 push constant 0
 add
 push constant 2728
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 32
 add
 push constant 2728
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 64
 add
 push constant 8188
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 96
 add
 push constant 5460
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 128
 add
 push constant 6828
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 160
 add
 push constant 5460
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 192
 add
 push constant 5460
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 224
 add
 push constant 2728
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 256
 add
 push constant 2728
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 288
 add
 push constant 1360
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 320
 add
 push constant 1360
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 352
 add
 push constant 672
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 384
 add
 push constant 672
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 416
 add
 push constant 320
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 448
 add
 push constant 320
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 480
 add
 push constant 128
@@ -710,98 +955,98 @@ pop pointer 0
 push constant 16384
 push argument 1
 add
-pop static 2
-push static 2
+pop static 0
+push static 0
 push constant 0
 add
 push constant 0
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 32
 add
 push constant 0
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 64
 add
 push constant 0
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 96
 add
 push constant 0
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 128
 add
 push constant 0
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 160
 add
 push constant 0
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 192
 add
 push constant 0
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 224
 add
 push constant 0
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 256
 add
 push constant 0
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 288
 add
 push constant 0
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 320
 add
 push constant 0
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 352
 add
 push constant 0
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 384
 add
 push constant 0
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 416
 add
 push constant 0
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 448
 add
 push constant 0
 call Memory.poke 2
 pop temp 0
-push static 2
+push static 0
 push constant 480
 add
 push constant 0

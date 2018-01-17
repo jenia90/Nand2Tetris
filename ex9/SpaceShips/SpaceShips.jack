@@ -3,21 +3,15 @@ class SpaceShips
     field Ship player;
     field Array enemies;
     static int nEnemies;
-    field char up, down, left, right;
 
     constructor SpaceShips new()
     {
         let nEnemies = 3;
         let player = Ship.new(200, 50, false);
         let enemies = Array.new(nEnemies);
-        let enemies[0] = Ship.new(0, 0, true);
+        let enemies[0] = Ship.new(50, 50, true);
         let enemies[1] = Ship.new(200, 150, true);
         let enemies[2] = Ship.new(150, 100, true);
-
-        let up = 131;
-        let down = 133;
-        let left = 130;
-        let right = 132;
 
         return this;
     }
@@ -42,12 +36,24 @@ class SpaceShips
                    (~(key = 81)))
             {
                 let key = Keyboard.keyPressed();
+                let i = 0;
+                while(i<nEnemies)
+                {
+                    let curr_ship = enemies[i];
+                    let dir = 4-i;
+                    do curr_ship.Move(dir);
+                    let i = i + 1;
+                    do Sys.wait(5);
+                }
                 let dir = 0;
+                do player.Move(dir);
+                do Sys.wait(5);
             }
 
-            if (key = 27)
+            if (key = 81)
             {
                 let quit = true;
+                let dir = 0;
                 do Screen.clearScreen();
             }
             if(key = 133)
@@ -68,16 +74,17 @@ class SpaceShips
             }
 
             do player.Move(dir);
-            do Sys.wait(5);
+            do Sys.wait(50);
 
-            /**let i = 0;
+            let i = 0;
             while(i<nEnemies)
             {
                 let curr_ship = enemies[i];
                 let dir = 4-i;
-                //do curr_ship.Move(dir);
+                do curr_ship.Move(dir);
                 let i = i + 1;
-            }*/
+                do Sys.wait(5);
+            }
         }
 
         do Screen.clearScreen();

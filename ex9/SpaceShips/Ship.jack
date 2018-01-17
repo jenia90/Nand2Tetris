@@ -2,28 +2,30 @@ class Ship
 {
     field int pos_x, pos_y, loc, last_dir;
     field boolean isEnemy;
-    static int speed;
-    static int size;
+    field int vSpeed, hSpeed;
     static int memAddress;
+    static int dMin, dMax;
     
-
-
+    
     constructor Ship new(int x, int y, boolean enemy)
     {
+        let dMin = 0;
+        let dMax = 8000;
         let pos_x = x;
         let pos_y = y;
-        let speed = 1;
-        let size = 5;
+        let vSpeed = 0;
+        let hSpeed = 0;
         let last_dir = 1;
         let isEnemy = enemy;
         
         if (isEnemy)
         {
+            let hSpeed = 1;
+            let vSpeed = 1;
             do DrawEnemyShip();
         }
         else
         {
-            let loc = Math.multiply(pos_y, 63) + pos_x;
             do Move(0);
         }
 
@@ -36,44 +38,65 @@ class Ship
 
         if (~isEnemy)
         {
-            if (~(dir = 0))
+            do EraseShip(loc);
+            if (~(dir = 0)) // if direction key was pressed update speed in that direction
             {
-                do EraseShip(loc);
-                if(dir = 2)
-                {
-                    let pos_y = pos_y - speed;
-                    let new_loc = Math.multiply(pos_y, 32) + pos_x;
-                    do Ship.drawUp(new_loc);
-                }
                 if(dir = 1)
                 {
-                    let pos_y = pos_y + speed;
-                    let new_loc = Math.multiply(pos_y, 32) + pos_x;
+                    if (vSpeed > -1) { let vSpeed = vSpeed - 1; }
+                    let new_loc = UpdatePositon();
+                    do Ship.drawUp(new_loc);
+                }
+                if(dir = 2)
+                {
+                    if (vSpeed < 1) { let vSpeed = vSpeed + 1; }
+                    let new_loc = UpdatePositon();
                     do Ship.drawDown(new_loc);
                 }
                 if(dir = 3)
                 {
-                    let pos_x = pos_x - speed;
-                    let new_loc = Math.multiply(pos_y, 16) + pos_x;
+                    if (hSpeed > -1) { let hSpeed = hSpeed - 1; }
+                    let new_loc = UpdatePositon();
                     do Ship.drawLeft(new_loc);
                 }
                 if(dir = 4)
                 {
-                    let pos_x = pos_x + speed;
-                    let new_loc = Math.multiply(pos_y, 16) + pos_x;
+                    if (hSpeed < 1) { let hSpeed = hSpeed + 1; }
+                    let new_loc = UpdatePositon();
                     do Ship.drawRight(new_loc);
                 }
-                let loc = new_loc;
+                let last_dir = dir;
             }
+            else // in case no direction change was made update the location
+            {
+                let new_loc = UpdatePositon();
+                if(last_dir = 1)
+                {
+                    do Ship.drawDown(new_loc);
+                }
+                if(last_dir = 2)
+                {
+                    do Ship.drawUp(new_loc);
+                }
+                if(last_dir = 3)
+                {
+                    do Ship.drawLeft(new_loc);
+                }
+                if(last_dir = 4)
+                {
+                    do Ship.drawRight(new_loc);
+                }
+            }
+            let loc = new_loc;
         }
-        else
+        else // deal with enemy ship movement
         {
             do EraseEnemyShip();
             if (dir = 1)
             {
                 if (pos_y < 250)
                 {
-                    let pos_y = pos_y + 1;
+                    let pos_y = pos_y + vSpeed;
                 }
                 else
                 {
@@ -84,7 +107,7 @@ class Ship
             {
                 if (pos_y > 15)
                 {
-                    let pos_y = pos_y - 1;
+                    let pos_y = pos_y - vSpeed;
                 }
                 else
                 {
@@ -96,7 +119,7 @@ class Ship
                 
                 if (pos_x > 10)
                 {
-                    let pos_x = pos_x - 1;
+                    let pos_x = pos_x - hSpeed;
                 }
                 else
                 {
@@ -107,7 +130,7 @@ class Ship
             {
                 if (pos_x < 506)
                 {
-                    let pos_x = pos_x + 1;
+                    let pos_x = pos_x + hSpeed;
                 }
                 else
                 {
@@ -128,6 +151,65 @@ class Ship
         return p;
     }
 
+    /**
+    * Gets the update location for the ship
+    */
+    method int UpdatePositon()
+    {
+        var int new_loc;
+        if(last_dir = 2)
+        {
+            let pos_x = pos_x + hSpeed;
+            let pos_y = pos_y - Math.multiply(vSpeed, 4);
+            if(pos_y < 26)
+            {
+                let pos_y = 230;
+            }
+            let new_loc = Math.multiply(pos_y, 32) + pos_x;
+        }
+        if(last_dir = 1)
+        {
+            let pos_x = pos_x + hSpeed;
+            let pos_y = pos_y + Math.multiply(vSpeed, 4);
+            if (pos_y > 230)
+            {
+                let pos_y = 26;
+            }
+            let new_loc = Math.multiply(pos_y, 32) + pos_x;
+        }
+        if(last_dir = 3)
+        {
+            let pos_x = pos_x + hSpeed;
+            let pos_y = pos_y + Math.multiply(vSpeed, 4);
+            if (pos_x < 26)
+            {
+                let pos_x = 480;
+            }
+            let new_loc = Math.multiply(pos_y, 32) + pos_x;
+        }
+        if(last_dir = 4)
+        {
+            let pos_x = pos_x + hSpeed;
+            let pos_y = pos_y + Math.multiply(vSpeed, 4);
+            if (pos_x > 480)
+            {
+                let pos_x = 26;
+            }
+            let new_loc = Math.multiply(pos_y, 32) + pos_x;
+        }
+        
+        if(new_loc < (dMin + 16))
+        {
+            let new_loc = dMax - 64;
+        }
+        if(new_loc > (dMax - 16))
+        {
+            let new_loc = dMin + 64;
+        }
+
+        return new_loc;
+    }
+
     method void DrawEnemyShip()
     {
         do Screen.setColor(true);
@@ -139,13 +221,21 @@ class Ship
     method void EraseEnemyShip()
     {
         do Screen.setColor(false);
-        do Screen.drawCircle(pos_x, pos_y, size);
+        do Screen.drawRectangle(pos_x, pos_y, pos_x + 5, pos_y + 5);
 
         return;
     }
 
     method void dispose()
     {
+        if(isEnemy)
+        {
+            do EraseShip(loc);
+        }
+        else
+        {
+            do EraseEnemyShip();
+        }
         do Memory.deAlloc(this);
         return;
     }

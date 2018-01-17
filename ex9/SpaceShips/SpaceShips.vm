@@ -1,5 +1,5 @@
 function SpaceShips.new 0
-push constant 6
+push constant 2
 call Memory.alloc 1
 pop pointer 0
 push constant 3
@@ -15,8 +15,8 @@ pop this 1
 push constant 0
 push this 1
 add
-push constant 0
-push constant 0
+push constant 50
+push constant 50
 push constant 0
 not
 call Ship.new 3
@@ -48,14 +48,6 @@ pop temp 0
 pop pointer 1
 push temp 0
 pop that 0
-push constant 131
-pop this 2
-push constant 133
-pop this 3
-push constant 130
-pop this 4
-push constant 132
-pop this 5
 push pointer 0
 return
 function SpaceShips.run 5
@@ -120,11 +112,49 @@ if-goto WHILE_END1
 call Keyboard.keyPressed 0
 pop local 1
 push constant 0
+pop local 0
+label WHILE_EXP2
+push local 0
+push static 0
+lt
+not
+if-goto WHILE_END2
+push local 0
+push this 1
+add
+pop pointer 1
+push that 0
+pop local 4
+push constant 4
+push local 0
+sub
 pop local 3
+push local 4
+push local 3
+call Ship.Move 2
+pop temp 0
+push local 0
+push constant 1
+add
+pop local 0
+push constant 5
+call Sys.wait 1
+pop temp 0
+goto WHILE_EXP2
+label WHILE_END2
+push constant 0
+pop local 3
+push this 0
+push local 3
+call Ship.Move 2
+pop temp 0
+push constant 5
+call Sys.wait 1
+pop temp 0
 goto WHILE_EXP1
 label WHILE_END1
 push local 1
-push constant 27
+push constant 81
 eq
 if-goto IF_TRUE0
 goto IF_FALSE0
@@ -132,6 +162,8 @@ label IF_TRUE0
 push constant 0
 not
 pop local 2
+push constant 0
+pop local 3
 call Screen.clearScreen 0
 pop temp 0
 label IF_FALSE0
@@ -175,9 +207,40 @@ push this 0
 push local 3
 call Ship.Move 2
 pop temp 0
+push constant 50
+call Sys.wait 1
+pop temp 0
+push constant 0
+pop local 0
+label WHILE_EXP3
+push local 0
+push static 0
+lt
+not
+if-goto WHILE_END3
+push local 0
+push this 1
+add
+pop pointer 1
+push that 0
+pop local 4
+push constant 4
+push local 0
+sub
+pop local 3
+push local 4
+push local 3
+call Ship.Move 2
+pop temp 0
+push local 0
+push constant 1
+add
+pop local 0
 push constant 5
 call Sys.wait 1
 pop temp 0
+goto WHILE_EXP3
+label WHILE_END3
 goto WHILE_EXP0
 label WHILE_END0
 call Screen.clearScreen 0
