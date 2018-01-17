@@ -1,0 +1,22 @@
+jenia90
+===============================================================================
+Yevgeni Dysin, ID 320884216, yevgeni.dysin@mail.huji.ac.il
+===============================================================================
+
+                           Project 9 - Jack Language - Space Ships
+                           -----------------------
+  
+Submitted Files
+---------------
+README - This file.
+Makefile - makefile
+Enemy.jack - Represents enemy ship class.
+Player.jack - Represents player ship class.
+SpaceShips.jack - Represents a game of Space ships. The goal of the game is
+                  to avoid collision with the asteroids.
+Main.jack - Main executable for the game.
+
+
+Note:
+I had some trouble with the collision detection so it doesnt always work as expected
+and because I have little time to fix it before the submission im submitting it as-is :(

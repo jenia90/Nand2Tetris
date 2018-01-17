@@ -1,0 +1,71 @@
+class Enemy
+{
+    field int pos_x, pos_y, _size, hSpeed, vSpeed;
+
+    constructor Enemy new(int x, int y, int vert_spd, int hor_spd, int size)
+    {
+        let pos_x = x;
+        let pos_y = y;
+        let vSpeed = vert_spd;
+        let hSpeed = hor_spd;
+        let _size = size;
+
+        do Draw();
+
+        return this;
+    }
+
+    method void Move()
+    {
+        do Erase();
+        let pos_y = pos_y + vSpeed;
+        let pos_x = pos_x + hSpeed;
+
+        if (pos_y > (255 - _size - 1))
+        {
+            let pos_y = _size + 1;
+        }
+        if(pos_y < _size)
+        {
+            let pos_y = 255 - _size - 1;
+        }
+        if(pos_x < _size)
+        {
+            let pos_x = 511 - _size - 1;
+        }
+        if(pos_x > (511 - _size - 1))
+        {
+            let pos_x = _size + 1;  
+        }
+
+        do Draw();
+
+        return;
+    }
+
+    method int GetX() { return pos_x; }
+    method int GetY() { return pos_y; }
+
+    method void Draw()
+    {
+        do Screen.setColor(true);
+        do Screen.drawRectangle(pos_x, pos_y, pos_x + _size, pos_y + _size);
+
+        return;
+    }
+
+    method void Erase()
+    {
+        do Screen.setColor(false);
+        do Screen.drawRectangle(pos_x, pos_y, pos_x + _size, pos_y + _size);
+
+        return;
+    }
+
+    method void dispose()
+    {
+        do Erase();
+        do Memory.deAlloc(this);
+        return;
+    }
+}

@@ -2,12 +2,11 @@ function SpaceShips.new 0
 push constant 2
 call Memory.alloc 1
 pop pointer 0
-push constant 3
+push constant 8
 pop static 0
 push constant 200
 push constant 50
-push constant 0
-call Ship.new 3
+call Player.new 2
 pop this 0
 push static 0
 call Array.new 1
@@ -17,9 +16,10 @@ push this 1
 add
 push constant 50
 push constant 50
+push constant 1
 push constant 0
-not
-call Ship.new 3
+push constant 5
+call Enemy.new 5
 pop temp 0
 pop pointer 1
 push temp 0
@@ -29,9 +29,10 @@ push this 1
 add
 push constant 200
 push constant 150
-push constant 0
-not
-call Ship.new 3
+push constant 1
+push constant 2
+push constant 10
+call Enemy.new 5
 pop temp 0
 pop pointer 1
 push temp 0
@@ -42,25 +43,86 @@ add
 push constant 150
 push constant 100
 push constant 0
-not
-call Ship.new 3
+push constant 1
+push constant 15
+call Enemy.new 5
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push constant 3
+push this 1
+add
+push constant 100
+push constant 150
+push constant 1
+push constant 1
+push constant 8
+call Enemy.new 5
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push constant 4
+push this 1
+add
+push constant 250
+push constant 200
+push constant 3
+push constant 1
+push constant 4
+call Enemy.new 5
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push constant 5
+push this 1
+add
+push constant 10
+push constant 160
+push constant 2
+push constant 4
+push constant 7
+call Enemy.new 5
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push constant 6
+push this 1
+add
+push constant 350
+push constant 100
+push constant 1
+push constant 3
+push constant 8
+call Enemy.new 5
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push constant 7
+push this 1
+add
+push constant 230
+push constant 90
+push constant 3
+push constant 1
+push constant 13
+call Enemy.new 5
 pop temp 0
 pop pointer 1
 push temp 0
 pop that 0
 push pointer 0
 return
-function SpaceShips.run 5
+function SpaceShips.run 6
 push argument 0
 pop pointer 0
-push constant 0
-pop local 2
-push constant 0
-pop local 3
-push constant 0
-push constant 26
-call Output.moveCursor 2
-pop temp 0
+push constant 11
+call String.new 1
+pop local 5
 push constant 11
 call String.new 1
 push constant 83
@@ -85,6 +147,14 @@ push constant 80
 call String.appendChar 2
 push constant 83
 call String.appendChar 2
+pop local 5
+push constant 0
+pop local 2
+push constant 0
+push constant 26
+call Output.moveCursor 2
+pop temp 0
+push local 5
 call Output.printString 1
 pop temp 0
 label WHILE_EXP0
@@ -94,6 +164,8 @@ not
 if-goto WHILE_END0
 call Keyboard.keyPressed 0
 pop local 1
+push constant 0
+pop local 3
 label WHILE_EXP1
 push local 1
 push constant 133
@@ -105,6 +177,9 @@ or
 push local 1
 push constant 81
 eq
+not
+and
+push local 2
 not
 and
 not
@@ -125,13 +200,8 @@ add
 pop pointer 1
 push that 0
 pop local 4
-push constant 4
-push local 0
-sub
-pop local 3
 push local 4
-push local 3
-call Ship.Move 2
+call Enemy.Move 1
 pop temp 0
 push local 0
 push constant 1
@@ -140,13 +210,22 @@ pop local 0
 push constant 5
 call Sys.wait 1
 pop temp 0
+push pointer 0
+push this 0
+push local 4
+call SpaceShips.CheckCollision 3
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push constant 0
+not
+pop local 2
+label IF_FALSE0
 goto WHILE_EXP2
 label WHILE_END2
-push constant 0
-pop local 3
 push this 0
 push local 3
-call Ship.Move 2
+call Player.Move 2
 pop temp 0
 push constant 5
 call Sys.wait 1
@@ -156,9 +235,9 @@ label WHILE_END1
 push local 1
 push constant 81
 eq
-if-goto IF_TRUE0
-goto IF_FALSE0
-label IF_TRUE0
+if-goto IF_TRUE1
+goto IF_FALSE1
+label IF_TRUE1
 push constant 0
 not
 pop local 2
@@ -166,48 +245,48 @@ push constant 0
 pop local 3
 call Screen.clearScreen 0
 pop temp 0
-label IF_FALSE0
-push local 1
-push constant 133
-eq
-if-goto IF_TRUE1
-goto IF_FALSE1
-label IF_TRUE1
-push constant 1
-pop local 3
 label IF_FALSE1
 push local 1
-push constant 131
+push constant 133
 eq
 if-goto IF_TRUE2
 goto IF_FALSE2
 label IF_TRUE2
-push constant 2
+push constant 1
 pop local 3
 label IF_FALSE2
 push local 1
-push constant 130
+push constant 131
 eq
 if-goto IF_TRUE3
 goto IF_FALSE3
 label IF_TRUE3
-push constant 3
+push constant 2
 pop local 3
 label IF_FALSE3
 push local 1
-push constant 132
+push constant 130
 eq
 if-goto IF_TRUE4
 goto IF_FALSE4
 label IF_TRUE4
-push constant 4
+push constant 3
 pop local 3
 label IF_FALSE4
+push local 1
+push constant 132
+eq
+if-goto IF_TRUE5
+goto IF_FALSE5
+label IF_TRUE5
+push constant 4
+pop local 3
+label IF_FALSE5
 push this 0
 push local 3
-call Ship.Move 2
+call Player.Move 2
 pop temp 0
-push constant 50
+push constant 5
 call Sys.wait 1
 pop temp 0
 push constant 0
@@ -224,14 +303,20 @@ add
 pop pointer 1
 push that 0
 pop local 4
-push constant 4
-push local 0
-sub
-pop local 3
 push local 4
-push local 3
-call Ship.Move 2
+call Enemy.Move 1
 pop temp 0
+push pointer 0
+push this 0
+push local 4
+call SpaceShips.CheckCollision 3
+if-goto IF_TRUE6
+goto IF_FALSE6
+label IF_TRUE6
+push constant 0
+not
+pop local 2
+label IF_FALSE6
 push local 0
 push constant 1
 add
@@ -304,6 +389,49 @@ call Output.moveCursor 2
 pop temp 0
 push constant 0
 return
+function SpaceShips.CheckCollision 6
+push argument 0
+pop pointer 0
+push constant 0
+pop local 0
+push argument 1
+call Player.GetX 1
+push argument 2
+call Enemy.GetX 1
+sub
+pop local 1
+push argument 1
+call Player.GetY 1
+push argument 2
+call Enemy.GetY 1
+sub
+pop local 2
+push local 1
+push local 1
+call Math.multiply 2
+pop local 4
+push local 2
+push local 2
+call Math.multiply 2
+pop local 5
+push local 4
+push local 5
+add
+call Math.abs 1
+call Math.sqrt 1
+pop local 3
+push local 3
+push constant 2
+lt
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push constant 0
+not
+pop local 0
+label IF_FALSE0
+push local 0
+return
 function SpaceShips.dispose 2
 push argument 0
 pop pointer 0
@@ -322,12 +450,12 @@ pop pointer 1
 push that 0
 pop local 1
 push local 1
-call Ship.dispose 1
+call Enemy.dispose 1
 pop temp 0
 goto WHILE_EXP0
 label WHILE_END0
 push this 0
-call Ship.dispose 1
+call Player.dispose 1
 pop temp 0
 call Screen.clearScreen 0
 pop temp 0
