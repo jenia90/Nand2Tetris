@@ -238,14 +238,6 @@ class Screen
     function void drawCircle(int cx, int cy, int r) 
     {
         var int dy, sqrt, x1, x2, y;
-        if(r > 181)
-        {
-            do Sys.error(13);
-        }
-        if(((cx - r) < 0) | ((cx + r) > 511) | ((cy - r) < 0) | ((cy + r) > 255))
-        {
-            do Sys.error(12);
-        }
         let dy = -r;
         
         while(~(dy = r))

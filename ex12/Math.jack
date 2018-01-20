@@ -9,12 +9,37 @@
  */
 class Math {
 
+    static Array masks;
     /** Initializes the library. */
-    function void init() {
+    function void init() 
+    {
+        let masks = Array.new(16);
+        let masks[0] = 1;
+        let masks[1] = 2;
+        let masks[2] = 4;
+        let masks[3] = 8;
+        let masks[4] = 16;
+        let masks[5] = 32;
+        let masks[6] = 64;
+        let masks[7] = 128;
+        let masks[8] = 256;
+        let masks[9] = 512;
+        let masks[10] = 1024;
+        let masks[11] = 2048;
+        let masks[12] = 4096;
+        let masks[13] = 8192;
+        let masks[14] = 16384;
+        let masks[15] = 16384 + 16384;
     }
 
     /** Returns the absolute value of x. */
-    function int abs(int x) {
+    function int abs(int x) 
+    {
+        if (x < 0)
+        {
+            return -x;
+        }
+        return x;
     }
 
     /** Returns the product of x and y. 
@@ -22,7 +47,30 @@ class Math {
      *  program's code, it handles it by invoking this method. In other words,
      *  the Jack expressions x*y and multiply(x,y) return the same value.
      */
-    function int multiply(int x, int y) {
+    function int multiply(int x, int y) 
+    {
+        var int sx, res, i;
+
+        if((x = 0) | (y = 0))
+        {
+            return 0;
+        }
+        
+        let res = 0;
+        let sx = x;
+        let i = 0;
+
+        while(i < 16)
+        {
+            if(~((masks[i] & y) = 0))
+            {
+                let res = res + sx;
+            }
+            let sx = sx + sx;
+            let i = i + 1;
+        }
+
+        return res;
     }
 
     /** Returns the integer part of x/y.
@@ -30,18 +78,79 @@ class Math {
      *  program's code, it handles it by invoking this method. In other words,
      *  the Jack expressions x/y and divide(x,y) return the same value.
      */
-    function int divide(int x, int y) {
+    function int divide(int x, int y) 
+    {
+        var int q;
+
+        if(y = 0)
+        {
+            Sys.error(3);
+        }
+        if ((x > y) | (y < 0))
+        {
+            return 0;
+        }
+
+        let q = Math.divide(x, 2*y);
+        if ((x < 0) | (y < 0))
+        {
+            let q = -q;
+        }
+        if ((x-(2 * q * y)) < y)
+        {
+            return 2 * q;
+        }
+        else
+        {
+
+            return (2 * q) + 1;
+        }
+
     }
 
     /** Returns the integer part of the square root of x. */
-    function int sqrt(int x) {
+    function int sqrt(int x) 
+    {
+        var int y, j, c;
+
+        if(x < 0)
+        {
+            Sys.error(4);
+        }
+
+        let y = 0;
+        let j = (x / 2) - 1;
+        
+        while ((j > 0) & (y < x))
+        {
+            let c = (y + masks[j]) * (y + masks[j]);
+            if (~(c > x) & (c > 0))
+            {
+                let y = y + masks[j];
+            }
+            let j = j - 1;
+        }
+
+        return y;
     }
 
     /** Returns the greater number. */
-    function int max(int a, int b) {
+    function int max(int a, int b) 
+    {
+        if (a < b)
+        {
+            return b;
+        }
+        return a;
     }
 
     /** Returns the smaller number. */
-    function int min(int a, int b) {
+    function int min(int a, int b) 
+    {
+        if (a < b)
+        {
+            return a;
+        }
+        return b;
     }
 }
