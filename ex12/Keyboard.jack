@@ -10,8 +10,10 @@ class Keyboard {
 	static int baseAddress;
 
     /** Initializes the keyboard. */
-    function void init() {
+    function void init() 
+    {
     	let baseAddress = 24576;
+        return;
     } 
 
     /**
@@ -34,7 +36,8 @@ class Keyboard {
      * ESC = 140
      * F1 - F12 = 141 - 152
      */
-    function char keyPressed() {
+    function char keyPressed() 
+    {
     	return Memory.peek(baseAddress);
     }
 
@@ -51,7 +54,7 @@ class Keyboard {
 
     	let keyVal = Keyboard.keyPressed();
 
-    	while(-(Keyboard.keyPressed() = 0)) 
+    	while(~(Keyboard.keyPressed() = 0)) 
         {
     	}
         do Output.printChar(keyVal);
@@ -78,13 +81,12 @@ class Keyboard {
 
     		if(c = 128)
             {
-    			Output.println();
+    			do Output.println();
     			return s;
     		}
     		if (c = 129)
             {
     			do s.eraseLastChar();
-    			do Output.backspace();
     		} 
             else 
             {

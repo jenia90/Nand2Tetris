@@ -150,12 +150,14 @@ push constant 8192
 lt
 not
 if-goto WHILE_END0
-push static 2
 push local 0
+push static 2
 add
 push constant 0
-call Memory.poke 2
 pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
 push local 0
 push constant 16
 add
@@ -196,18 +198,19 @@ push argument 0
 push constant 16
 call Screen.mod 2
 pop local 0
-push static 2
 push argument 1
 push constant 32
 call Math.multiply 2
-add
 push argument 0
 push constant 16
 call Math.divide 2
 add
 pop local 1
 push local 1
-call Memory.peek 1
+push static 2
+add
+pop pointer 1
+push that 0
 pop local 2
 push static 0
 if-goto IF_TRUE1
@@ -234,9 +237,13 @@ and
 pop local 2
 label IF_END1
 push local 1
+push static 2
+add
 push local 2
-call Memory.poke 2
 pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
 push constant 0
 return
 function Screen.drawLine 9
@@ -458,19 +465,7 @@ goto WHILE_EXP2
 label WHILE_END2
 push constant 0
 return
-function Screen.drawHorizontalLine 4
-push static 0
-if-goto IF_TRUE0
-goto IF_FALSE0
-label IF_TRUE0
-push constant 1
-neg
-pop local 2
-goto IF_END0
-label IF_FALSE0
-push constant 0
-pop local 2
-label IF_END0
+function Screen.drawHorizontalLine 1
 push constant 0
 pop local 0
 label WHILE_EXP0

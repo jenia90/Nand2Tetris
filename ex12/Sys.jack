@@ -13,10 +13,10 @@ class Sys {
         do Math.init();
         do Memory.init();
         do Screen.init();
-            do Keyboard.init();
-            do Output.init();
-        
-        Main.main();
+        do Keyboard.init();
+        do Output.init();
+    
+        do Main.main();
 
         do Sys.halt();
 
@@ -42,7 +42,7 @@ class Sys {
         while (i < duration) 
         {
             let j = 0;
-            while (j < 200) 
+            while (j < 80) 
             {
                 let j = j + 1;
             }

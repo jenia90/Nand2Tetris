@@ -12,7 +12,7 @@
 class Screen 
 {
     static boolean color;
-    static Array masks;
+    static Array masks, screen;
     static int baseAddress;
 
     /** Initializes the Screen. */
@@ -37,7 +37,7 @@ class Screen
         let masks[15] = 16384 + 16384;
 
         let color = true;
-        let baseAddress = 16384;
+        let screen = 16384;
         do Screen.clearScreen();
         return;
     }
@@ -49,7 +49,7 @@ class Screen
         let i = 0;
         while (i < 8192)
         {
-            do Memory.poke(baseAddress + i, 0);
+            let screen[i] = 0;
             let i = i + 16;
         }
         return;
@@ -74,8 +74,8 @@ class Screen
         }
 
         let bit = Screen.mod(x, 16); // col % 16
-        let address = baseAddress + (y * 32) + (x / 16);
-        let value = Memory.peek(address);
+        let address = (y * 32) + (x / 16);
+        let value = screen[address];
 
         if (color)
         {  // black
@@ -86,7 +86,7 @@ class Screen
             let value = value & ~masks[bit];
         }
 
-        do Memory.poke(address, value);
+        let screen[address] = value;
 
         return;
     }
@@ -94,7 +94,7 @@ class Screen
     /** Draws a line from pixel (x1,y1) to pixel (x2,y2), using the current color. */
     function void drawLine(int x1, int y1, int x2, int y2) 
     {
-        var int a, b, a_inc, b_inc, dx, dy, criterion, temp, start;
+        var int a, b, a_inc, b_inc, dx, dy, moveTo, temp, start;
 
         if ((x1 < 0) | (x1 > 511) | (y1 < 0) | (y1 > 255) |
             (x2 < 0) | (x2 > 511) | (y2 < 0) | (y2 > 255)) 
@@ -146,9 +146,9 @@ class Screen
 
         while ((a < dx) & (b < dy)) 
         {
-            let criterion = (a * dy) - (b * dx);
+            let moveTo = (a * dy) - (b * dx);
 
-            if (criterion < 0) 
+            if (moveTo < 0) 
             {
                 let a = a + 1;
             } 
@@ -162,9 +162,9 @@ class Screen
 
         while ((a < dx) & (b > dy)) 
         {
-            let criterion = (a * dy) - (b * dx);
+            let moveTo = (a * dy) - (b * dx);
 
-            if (criterion > 0) 
+            if (moveTo > 0) 
             {
                 let a = a + 1;
             } 
@@ -184,33 +184,13 @@ class Screen
      */
     function void drawHorizontalLine(int x, int y, int len)
     {
-        var int a, start, filler, chunk;
-        if(color) 
-        { 
-            let filler = -1; 
-        }
-        else 
-        { 
-            let filler = 0; 
-        }
-        //let chunk = 16 - Screen.mod(x, 16);
+        var int a;
 
         let a = 0;
-        //let start = baseAddress + (x/16) + (y*32);
-        //do Memory.poke(start, chunk);
-        //let a = chunk;
         while (~(a = len)) 
         {
-            /**if(~((len - a) < 16)) 
-            {
-                do Memory.poke(start + a, filler);
-                let a = a + 16;
-            }
-            else
-            {*/
-                do Screen.drawPixel(x + a, y);
-                let a = a + 1;
-            //}
+            do Screen.drawPixel(x + a, y);
+            let a = a + 1;
         }
         return;
     }

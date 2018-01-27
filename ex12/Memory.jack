@@ -51,11 +51,7 @@ class Memory
         // Get best fit block
         var Array current, best, next, res;
         var int bSize, cSize; // sizes of best so far block and current block
-
-        if(size < 1)
-        {
-            Sys.error(5);
-        }
+        
         // find the next free block using the best fit alogrithm.
         let best = null;
         let bSize = HEAP_LEN;
@@ -63,7 +59,7 @@ class Memory
 
         if (current[NEXT] = null) { let best = current; }
 
-        while(~(current = null) | ~(best = null))
+        while(~(current = null))
         {
             let cSize = current[LENGTH] - 1;
             if(~(current < size) & (cSize < bSize))

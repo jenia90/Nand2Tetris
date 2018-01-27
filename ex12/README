@@ -1,0 +1,20 @@
+jenia90
+===============================================================================
+Yevgeni Dysin, ID 320884216, yevgeni.dysin@mail.huji.ac.il
+===============================================================================
+
+                           Project 12 - OS
+                           ---------------
+  
+Submitted Files
+---------------
+README - This file.
+Makefile - makefile
+Array.jack - Array class.
+Keyboard.jack - Keyboard input emulation.
+Math.jack - Math lib.
+Memory.jack - Memory management lib.
+Output.jack - Textual output lib.
+Screen.jack - Graphical output lib.
+String.jack - String class.
+Sys.jack - Basic sys handler.

@@ -30,6 +30,8 @@ class Math {
         let masks[13] = 8192;
         let masks[14] = 16384;
         let masks[15] = 16384 + 16384;
+
+        return;
     }
 
     /** Returns the absolute value of x. */
@@ -80,31 +82,34 @@ class Math {
      */
     function int divide(int x, int y) 
     {
-        var int q;
+        var int q, res;
+        var boolean isNeg;
+        let isNeg = ~((x < 0) = (y < 0));
+        let x = Math.abs(x);
+        let y = Math.abs(y);
 
-        if(y = 0)
-        {
-            Sys.error(3);
-        }
-        if ((x > y) | (y < 0))
+        if (x < y)
         {
             return 0;
         }
 
-        let q = Math.divide(x, 2*y);
-        if ((x < 0) | (y < 0))
+        let q = Math.divide(x, y + y);
+        if ((x - Math.multiply(q + q, y)) < y)
         {
-            let q = -q;
-        }
-        if ((x-(2 * q * y)) < y)
-        {
-            return 2 * q;
+            let res = q + q;
         }
         else
         {
-
-            return (2 * q) + 1;
+            let res = q + q + 1;
         }
+
+        
+        if (isNeg)
+        {
+            return -res;
+        }
+        else
+        { return res; }
 
     }
 
@@ -113,17 +118,12 @@ class Math {
     {
         var int y, j, c;
 
-        if(x < 0)
-        {
-            Sys.error(4);
-        }
-
         let y = 0;
-        let j = (x / 2) - 1;
+        let j = 7; // set it to the biggest power possible. (2^8< will result in overflow)
         
-        while ((j > 0) & (y < x))
+        while (~(j < 0))
         {
-            let c = (y + masks[j]) * (y + masks[j]);
+            let c = Math.multiply((y + masks[j]), (y + masks[j]));
             if (~(c > x) & (c > 0))
             {
                 let y = y + masks[j];

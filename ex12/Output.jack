@@ -17,7 +17,7 @@
 class Output {
 
     // Character map for displaying characters
-    static Array charMaps; 
+    static Array charMaps, screen; 
     static int curCol, curRow;
     static int MAX_COL, MAX_ROW;
     static Array baseAddress;
@@ -25,9 +25,9 @@ class Output {
     /** Initializes the screen, and locates the cursor at the screen's top-left. */
     function void init() 
     {
-        let baseAddress = 16384;
-        let lineLength = 63;
-        let numRows = 22;
+        let screen = 16384;
+        let MAX_COL = 63;
+        let MAX_ROW = 22;
         do Output.initMap();
         return;
     }
@@ -81,7 +81,7 @@ class Output {
         do Output.create(64,30,51,51,59,59,59,27,3,30,0,0);  // @
         do Output.create(63,30,51,51,24,12,12,0,12,12,0,0);  // ?
 
-        do Output.create(65,0,0,0,0,0,0,0,0,0,0,0);          // A ** TO BE FILLED **
+        do Output.create(65,12,30,51,51,63,51,51,51,51,0,0); // A ** TO BE FILLED **
         do Output.create(66,31,51,51,51,31,51,51,51,31,0,0); // B
         do Output.create(67,28,54,35,3,3,3,35,54,28,0,0);    // C
         do Output.create(68,15,27,51,51,51,51,51,27,15,0,0); // D
@@ -192,7 +192,7 @@ class Output {
     {
         if((i < 0) | (j < 0) | (i > 22) | (j > 63))
         {
-            Sys.error(20);
+            do Sys.error(20);
         }
 
         let curCol = j;
@@ -207,7 +207,7 @@ class Output {
         var Array map;
         var int i, address, mask, bitmap, value;
         let map = Output.getMap(c);
-        let address = baseAddress + (curRow * 32 * 11) + (curCol/2);
+        let address = (curRow * 32 * 11) + (curCol/(16/8));
         let mask = curCol & 1;
 
         let i = 0;
@@ -217,26 +217,30 @@ class Output {
             if(mask = 1)
             {
                 let bitmap = bitmap * 256;
-                let value = Memory.peek(address) & (-1 & 255) | bitmap;
-                do Memory.poke(address, value);
+                let screen[address] = screen[address] & (-1 & 255) | bitmap;
             }
             else
             {
-                let value = Memory.peek(address) & 255 | bitmap;
-                do Memory.poke(address, value);
+                let screen[address] = screen[address] & 255 | bitmap;
             }
-
             let address = address + 32;
             let i = i + 1;
         }
 
         if(curCol = MAX_COL)
         {
-            do Output.moveCursor(curRow + 1, 0);
+            if(curRow = MAX_ROW)
+            {
+                do Output.moveCursor(0, 0);
+            }
+            else
+            {
+                do Output.println();
+            }
         }
         else
         {
-            do Output.moveCursor(curRow, curCol + 1);
+            let curCol = curCol + 1;
         }
 
         return;
@@ -262,10 +266,11 @@ class Output {
     function void printInt(int i) 
     {
         var String s;
-        let s = String.new(10);
+        let s = String.new(6);
         do s.setInt(i);
         do Output.printString(s);
         do s.dispose();
+
         return;
     }
 
@@ -280,6 +285,7 @@ class Output {
         {
             do Output.moveCursor(0, 0);
         }
+        return;
     }
 
     /** Moves the cursor one column back. */
